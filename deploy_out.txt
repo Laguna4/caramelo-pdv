@@ -1,0 +1,23 @@
+[2026-03-05T03:10:34.899Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[2026-03-05T03:10:34.899Z] > authorizing via signed-in user (lucasluob999@gmail.com)
+[2026-03-05T03:10:34.899Z] [iam] checking project toro-pdv for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[2026-03-05T03:10:34.900Z] Checked if tokens are valid: true, expires at: 1772681379151
+[2026-03-05T03:10:34.900Z] Checked if tokens are valid: true, expires at: 1772681379151
+[2026-03-05T03:10:34.902Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/toro-pdv:testIamPermissions [none]
+[2026-03-05T03:10:34.902Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/toro-pdv:testIamPermissions  x-goog-user-project=toro-pdv
+[2026-03-05T03:10:34.902Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/toro-pdv:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[2026-03-05T03:10:35.867Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/toro-pdv:testIamPermissions 400
+[2026-03-05T03:10:35.867Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/toro-pdv:testIamPermissions {"error":{"code":400,"message":"Project 'projects/toro-pdv' not found or deleted.","status":"INVALID_ARGUMENT","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"USER_PROJECT_DENIED","domain":"googleapis.com","metadata":{"consumer":"projects/toro-pdv","containerInfo":"projects/toro-pdv","service":"cloudresourcemanager.googleapis.com"}}]}}
+[2026-03-05T03:10:35.868Z] [iam] error while checking permissions, command may fail: Request to https://cloudresourcemanager.googleapis.com/v1/projects/toro-pdv:testIamPermissions had HTTP Error: 400, Project 'projects/toro-pdv' not found or deleted.
+[2026-03-05T03:10:35.868Z] Checked if tokens are valid: true, expires at: 1772681379151
+[2026-03-05T03:10:35.868Z] Checked if tokens are valid: true, expires at: 1772681379151
+[2026-03-05T03:10:35.868Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/toro-pdv [none]
+[2026-03-05T03:10:36.603Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/toro-pdv 403
+[2026-03-05T03:10:36.603Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/toro-pdv {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[2026-03-05T03:10:36.603Z] Request to https://firebase.googleapis.com/v1beta1/projects/toro-pdv had HTTP Error: 403, The caller does not have permission
+[2026-03-05T03:10:36.604Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/toro-pdv had HTTP Error: 403, The caller does not have permission
+    at responseToError (C:\Users\Luob\.gemini\antigravity\scratch\toro-pdv\node_modules\firebase-tools\lib\responseToError.js:53:12)
+    at RetryOperation._fn (C:\Users\Luob\.gemini\antigravity\scratch\toro-pdv\node_modules\firebase-tools\lib\apiv2.js:330:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+Error: Failed to get Firebase project toro-pdv. Please make sure the project exists and your account has permission to access it.

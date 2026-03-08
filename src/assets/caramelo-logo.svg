@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <!-- Fundo circular -->
+  <circle cx="150" cy="150" r="145" fill="#FFF8DC" stroke="#D2691E" stroke-width="3"/>
+  
+  <!-- Corpo do cachorro -->
+  <ellipse cx="150" cy="200" rx="80" ry="60" fill="#D2691E"/>
+  
+  <!-- Cabeça -->
+  <ellipse cx="150" cy="130" rx="70" ry="75" fill="#D2691E"/>
+  
+  <!-- Orelha esquerda (caída) -->
+  <ellipse cx="100" cy="110" rx="30" ry="50" fill="#B8860B" transform="rotate(-20 100 110)"/>
+  
+  <!-- Orelha direita (caída) -->
+  <ellipse cx="200" cy="110" rx="30" ry="50" fill="#B8860B" transform="rotate(20 200 110)"/>
+  
+  <!-- Focinho claro -->
+  <ellipse cx="150" cy="150" rx="45" ry="40" fill="#F5DEB3"/>
+  
+  <!-- Nariz grande e preto -->
+  <ellipse cx="150" cy="145" rx="15" ry="12" fill="#654321"/>
+  
+  <!-- Olhos felizes (semicírculos) -->
+  <path d="M 120 115 Q 130 125 140 115" stroke="#654321" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 160 115 Q 170 125 180 115" stroke="#654321" stroke-width="4" fill="none" stroke-linecap="round"/>
+  
+  <!-- Boca sorridente GRANDE -->
+  <path d="M 120 160 Q 150 185 180 160" stroke="#654321" stroke-width="5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Língua para fora (feliz) -->
+  <ellipse cx="150" cy="180" rx="12" ry="18" fill="#FF69B4"/>
+  
+  <!-- Manchas no corpo (caramelo típico) -->
+  <ellipse cx="120" cy="190" rx="15" ry="20" fill="#B8860B" opacity="0.6"/>
+  <ellipse cx="180" cy="200" rx="18" ry="15" fill="#B8860B" opacity="0.6"/>
+  
+  <!-- Brilho nos olhos (felicidade) -->
+  <circle cx="125" cy="118" r="3" fill="white"/>
+  <circle cx="175" cy="118" r="3" fill="white"/>
+  
+  <!-- Detalhes do focinho -->
+  <line x1="150" y1="145" x2="150" y2="160" stroke="#654321" stroke-width="2"/>
+</svg>
