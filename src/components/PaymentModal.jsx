@@ -221,7 +221,7 @@ const PaymentModal = ({ total, onClose, onComplete, storeName, cnpj, customer, o
             <div className="bg-[#111] border border-white/10 text-white rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden w-full max-w-5xl max-h-[98vh] md:h-auto md:min-h-[600px] animate-scaleUp">
 
                 {/* LEFT: Amounts & Calc */}
-                <div className="flex-[0.9] p-6 md:p-8 border-b md:border-b-0 md:border-r border-white/10 flex flex-col bg-[#0a0a0a] relative overflow-y-auto custom-scrollbar">
+                <div className="flex-[0.9] min-w-[360px] p-6 md:p-8 border-b md:border-b-0 md:border-r border-white/10 flex flex-col bg-[#0a0a0a] relative overflow-y-auto custom-scrollbar">
                     {customer && (
                         <div className="absolute top-4 right-4 animate-fadeIn flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-full">
                             <FaUserCircle className="text-blue-400" />
@@ -235,10 +235,29 @@ const PaymentModal = ({ total, onClose, onComplete, storeName, cnpj, customer, o
                         <FaCalculator /> PAGAMENTO
                     </h2>
 
-                    <div className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-8">{formatCurrency(total)}</div>
+                    <div className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4">{formatCurrency(total)}</div>
+
+                    <div className="mb-8 p-6 bg-black rounded-3xl border border-white/10 flex flex-col gap-4 shadow-inner">
+                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Final</span>
+                            <span className="text-xl font-black text-white">{formatCurrency(finalTotal)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Restante</span>
+                            <span className={`text-xl font-black ${remaining > 0.01 ? 'text-red-500' : 'text-green-500'}`}>
+                                {formatCurrency(remaining)}
+                            </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Troco</span>
+                            <span className="text-xl font-black text-blue-500">
+                                {formatCurrency(change)}
+                            </span>
+                        </div>
+                    </div>
 
                     {/* DISCOUNT */}
-                    <div className="mb-4 bg-white/5 p-4 md:p-5 rounded-2xl border border-white/5">
+                    <div className="bg-white/5 p-4 md:p-5 rounded-2xl border border-white/5 mb-6">
                         <label className="text-[10px] uppercase font-black text-gray-500 mb-3 block tracking-widest"><FaPercentage className="inline mr-1" /> Aplicar Desconto</label>
                         <div className="flex gap-2">
                             <div className="flex bg-black rounded-xl border border-white/10 overflow-hidden">
@@ -260,25 +279,6 @@ const PaymentModal = ({ total, onClose, onComplete, storeName, cnpj, customer, o
                                 value={discountValue}
                                 onChange={(e) => setDiscountValue(e.target.value)}
                             />
-                        </div>
-                    </div>
-
-                    <div className="mt-auto p-6 bg-black rounded-3xl border border-white/10 flex flex-col gap-5 shadow-inner">
-                        <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                            <span className="text-sm font-bold text-gray-400">Total Final:</span>
-                            <span className="text-2xl font-black text-white">{formatCurrency(finalTotal)}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Restante</span>
-                            <span className={`text-2xl font-black ${remaining > 0.01 ? 'text-red-500' : 'text-green-500'}`}>
-                                {formatCurrency(remaining)}
-                            </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Troco</span>
-                            <span className="text-2xl font-black text-blue-500">
-                                {formatCurrency(change)}
-                            </span>
                         </div>
                     </div>
                 </div>
