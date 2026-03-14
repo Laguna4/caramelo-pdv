@@ -6,12 +6,14 @@ import { subscribeToAllComandas, createComanda, updateComanda } from '../service
 import { formatCurrency, generateId } from '../utils/calculations';
 import { useNavigate } from 'react-router-dom';
 import ProductSearchModal from '../components/ProductSearchModal';
+import { playNotificationSound } from '../utils/audio';
 
 const Tables = () => {
     const navigate = useNavigate();
     const [currentStore, setCurrentStore] = useState(null);
     const [comandas, setComandas] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [readyItemsCount, setReadyItemsCount] = useState(0);
 
     // View state
     const [selectedComanda, setSelectedComanda] = useState(null);
@@ -41,6 +43,19 @@ const Tables = () => {
                 if (!prev) return null;
                 const updated = data.find(c => c.id === prev.id);
                 return updated || prev;
+            });
+
+            // Notification Logic: Count total ready items in all active comandas
+            const currentReadyCount = data.reduce((acc, c) => {
+                const readyInComanda = (c.itens || []).filter(item => item.status_cozinha === 'pronto').length;
+                return acc + readyInComanda;
+            }, 0);
+
+            setReadyItemsCount(prev => {
+                if (currentReadyCount > prev) {
+                    playNotificationSound();
+                }
+                return currentReadyCount;
             });
 
             setLoading(false);
@@ -103,30 +118,40 @@ const Tables = () => {
                     </div>
 
                     {/* Active Comandas */}
-                    {comandas.map(comanda => (
-                        <div
-                            key={comanda.id}
-                            onClick={() => setSelectedComanda(comanda)}
-                            className={`bg-[#111] border rounded-2xl p-4 cursor-pointer hover:shadow-xl transition-all relative min-h-[120px] flex flex-col justify-between
-                                ${comanda.status === 'fechando' ? 'border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.1)]' : 'border-gray-800 hover:border-gray-600'}
-                            `}
-                        >
-                            {comanda.status === 'fechando' && (
-                                <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-[10px] font-bold px-2 py-1 rounded-full animate-pulse shadow-md">
-                                    FECHANDO
+                    {comandas.map(comanda => {
+                        const hasReadyItems = (comanda.itens || []).some(item => item.status_cozinha === 'pronto');
+
+                        return (
+                            <div
+                                key={comanda.id}
+                                onClick={() => setSelectedComanda(comanda)}
+                                className={`bg-[#111] border rounded-2xl p-4 cursor-pointer hover:shadow-xl transition-all relative min-h-[120px] flex flex-col justify-between
+                                    ${comanda.status === 'fechando' ? 'border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.1)]' : 'border-gray-800 hover:border-gray-600'}
+                                `}
+                            >
+                                {comanda.status === 'fechando' && (
+                                    <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-[10px] font-bold px-2 py-1 rounded-full animate-pulse shadow-md">
+                                        FECHANDO
+                                    </div>
+                                )}
+
+                                {hasReadyItems && (
+                                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg border border-green-400 animate-pulse z-20">
+                                        PRONTO
+                                    </div>
+                                )}
+
+                                <div>
+                                    <h3 className="text-xl font-black text-rose-400 mb-1">{comanda.identificador}</h3>
+                                    <p className="text-xs text-gray-500">{comanda.itens?.length || 0} itens</p>
                                 </div>
-                            )}
 
-                            <div>
-                                <h3 className="text-xl font-black text-rose-400 mb-1">{comanda.identificador}</h3>
-                                <p className="text-xs text-gray-500">{comanda.itens?.length || 0} itens</p>
+                                <div className="font-mono text-lg font-bold text-green-400 mt-2">
+                                    {formatCurrency(comanda.total || 0)}
+                                </div>
                             </div>
-
-                            <div className="font-mono text-lg font-bold text-green-400 mt-2">
-                                {formatCurrency(comanda.total || 0)}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* New Comanda Modal */}
@@ -342,6 +367,21 @@ const ComandaDetail = ({ comanda, store, onBack }) => {
                                     <button onClick={() => handleAddObservation(idx)} className="text-orange-500 hover:text-orange-400 transition-colors p-2" title="Adicionar Observação">
                                         <FaComment />
                                     </button>
+
+                                    {item.status_cozinha === 'pronto' && (
+                                        <button
+                                            onClick={async () => {
+                                                const updatedItems = [...comanda.itens];
+                                                updatedItems[idx].status_cozinha = 'entregue';
+                                                await updateComanda(store.id, comanda.id, { itens: updatedItems });
+                                            }}
+                                            className="bg-green-600 hover:bg-green-500 text-white p-2 rounded-lg transition-all flex items-center gap-1 text-[10px] font-bold"
+                                            title="Marcar como Entregue"
+                                        >
+                                            <FaCheckCircle className="text-sm" /> ENTREGAR
+                                        </button>
+                                    )}
+
                                     <button onClick={() => handleRemoveItem(idx)} className="text-gray-600 hover:text-red-500 transition-colors p-2">
                                         <FaTimes />
                                     </button>

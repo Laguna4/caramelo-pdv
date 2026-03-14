@@ -240,7 +240,7 @@ const CashManagementModal = ({ isOpen, onClose, currentRegister, store, user, on
                 </style>
                 <div className="bg-white text-black p-6 rounded-lg w-full max-w-sm shadow-2xl overflow-hidden relative" id="receipt-content">
                     <div className="text-center font-mono border-b border-dashed border-gray-400 pb-4 mb-4">
-                        <h2 className="font-bold text-xl uppercase">{store?.name || 'VEXA PDV'}</h2>
+                        <h2 className="font-bold text-xl uppercase">{store?.name || 'CARAMELO PDV'}</h2>
                         <p className="text-xs">FECHAMENTO DE CAIXA</p>
                         <p className="text-xs">{new Date(receiptData.date).toLocaleString()}</p>
                         <p className="text-xs mt-1">Op: {user.name}</p>
@@ -404,11 +404,11 @@ const CashManagementModal = ({ isOpen, onClose, currentRegister, store, user, on
                 </div>
 
                 <div>
-                    <label className="block text-sm font-bold text-gray-400 mb-2">Observações</label>
+                    <label className="block text-sm font-bold text-gray-400 mb-2">Observações / Motivo da Quebra</label>
                     <textarea
                         className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-slate-500 outline-none"
                         rows="2"
-                        placeholder="Justificativa para quebra, etc."
+                        placeholder="Descreva aqui o motivo de sangrias especiais ou justificativa para quebra de caixa..."
                         value={notes}
                         onChange={e => setNotes(e.target.value)}
                     />

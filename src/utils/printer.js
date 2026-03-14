@@ -1,21 +1,33 @@
 // Helper for styles
 const getStyles = (widthType) => {
     let styles = `
-        body { font-family: 'Courier New', monospace; font-size: 12px; margin: 0; padding: 0; }
+        body { font-family: 'Courier New', monospace; font-size: 12px; margin: 0; padding: 0; color: #000; }
         .container { padding: 5px; }
-        .header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px; }
-        .title { font-weight: bold; font-size: 14px; text-transform: uppercase; }
-        .info { font-size: 10px; }
-        .items { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        .items th { border-bottom: 1px dashed #000; text-align: left; font-size: 10px; }
-        .items td { text-align: left; padding: 2px 0; vertical-align: top; }
-        .price { text-align: right; }
-        .totals { border-top: 1px dashed #000; padding-top: 5px; text-align: right; }
-        .total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
-        .footer { text-align: center; margin-top: 10px; font-size: 10px; border-top: 1px dashed #000; padding-top: 5px; }
-        .voucher-box { border: 2px dashed #000; padding: 10px; margin: 10px 0; text-align: center; }
-        .voucher-code { font-size: 18px; font-weight: bold; margin: 5px 0; }
-        .voucher-val { font-size: 20px; font-weight: bold; }
+        .header { text-align: center; margin-bottom: 8px; border-bottom: 1px dashed #000; padding-bottom: 8px; }
+        .title { font-weight: bold; font-size: 16px; text-transform: uppercase; margin-bottom: 2px; }
+        .info { font-size: 10px; line-height: 1.2; }
+        .divider { border-top: 1px dashed #000; margin: 8px 0; }
+        .section-title { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #eee; }
+        
+        .items { width: 100%; border-collapse: collapse; margin: 5px 0; }
+        .items th { border-bottom: 1px solid #000; text-align: left; font-size: 9px; padding-bottom: 2px; }
+        .items td { text-align: left; padding: 3px 0; vertical-align: top; font-size: 10px; }
+        
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .bold { font-weight: bold; }
+        
+        .totals { margin-top: 5px; border-top: 1px dashed #000; padding-top: 5px; }
+        .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+        .total-main { font-size: 18px; font-weight: 900; margin-top: 5px; border-top: 1px double #000; padding-top: 5px; }
+        
+        .footer { text-align: center; margin-top: 15px; font-size: 9px; border-top: 1px dashed #000; padding-top: 8px; line-height: 1.3; }
+        
+        .payment-info { font-size: 10px; margin-top: 5px; font-style: italic; }
+        
+        @media print {
+            @page { margin: 0; }
+        }
     `;
 
     if (widthType === 'thermal_58') {
@@ -68,33 +80,47 @@ export const printReceipt = (sale, storeData, settings) => {
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="title">${store.name || 'LOJA'}</div>
+                    <div class="title">${store.name || 'CARAMELO PDV'}</div>
                     <div class="info">
-                        ${store.address || ''}<br/>
-                        ${store.phone ? 'Tel: ' + store.phone : ''}<br/>
-                        ${store.cnpj ? 'CNPJ: ' + store.cnpj : ''}<br/>
+                        ${store.cnpj ? 'CNPJ: ' + store.cnpj : ''}${store.cnpj && store.address ? '<br/>' : ''}
+                        ${store.address || ''}${store.address && store.phone ? '<br/>' : ''}
+                        ${store.phone ? 'Tel: ' + store.phone : ''}
                     </div>
                 </div>
-                
-                <div class="info" style="margin-bottom: 5px;">
-                    Data: ${new Date(sale.date).toLocaleString()}<br/>
-                    Venda: #${sale.id.slice(-6).toUpperCase()} | Vend: ${sale.sellerName || 'Loja'}
+
+                <div class="info">
+                    <div class="bold">CUPOM NÃO FISCAL</div>
+                    Data: ${new Date(sale.date).toLocaleString().split(',').join(' - ')}<br/>
+                    Venda: #${sale.id.slice(-8).toUpperCase()}<br/>
+                    Vendedor: ${sale.sellerName || 'Operador'}
                 </div>
 
+                ${sale.customer ? `
+                    <div class="divider"></div>
+                    <div class="section-title">Cliente</div>
+                    <div class="info">
+                        ${sale.customer.name.toUpperCase()}<br/>
+                        ${sale.customer.cpf ? 'CPF: ' + sale.customer.cpf : ''}
+                    </div>
+                ` : ''}
+
+                <div class="divider"></div>
                 <table class="items">
                     <thead>
                         <tr>
-                            <th style="width: 50%">ITEM</th>
-                            <th style="width: 15%">QTD</th>
-                            <th style="width: 35%" class="price">VALOR</th>
+                            <th style="width: 45%">ITEM</th>
+                            <th style="width: 15%" class="text-center">QTD</th>
+                            <th style="width: 20%" class="text-right">UN</th>
+                            <th style="width: 20%" class="text-right">TOTAL</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${sale.items.map(item => `
                             <tr>
-                                <td>${item.name.substring(0, 20)}</td>
-                                <td>${item.quantity}</td>
-                                <td class="price">${(item.price * item.quantity).toFixed(2)}</td>
+                                <td>${item.name.toUpperCase().substring(0, 24)}</td>
+                                <td class="text-center">${item.quantity}</td>
+                                <td class="text-right">${item.price.toFixed(2)}</td>
+                                <td class="text-right bold">${(item.price * item.quantity).toFixed(2)}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -102,19 +128,46 @@ export const printReceipt = (sale, storeData, settings) => {
 
                 <div class="totals">
                     <div class="total-row">
-                        <span>TOTAL</span>
+                        <span>SUBTOTAL</span>
                         <span>R$ ${sale.total.toFixed(2)}</span>
                     </div>
-                    <div style="font-size: 11px; margin-top: 5px;">
-                        Pagamento: ${translatePaymentMethod(sale.payment?.method || 'Dinheiro')}
-                        ${sale.payment?.installments ? `(${sale.payment.installments}x)` : ''}
+                    ${sale.payment?.discount > 0 ? `
+                        <div class="total-row">
+                            <span>DESCONTO</span>
+                            <span>-R$ ${sale.payment.discount.toFixed(2)}</span>
+                        </div>
+                    ` : ''}
+                    <div class="total-row total-main">
+                        <span>PAGAR</span>
+                        <span>R$ ${(sale.total - (sale.payment?.discount || 0)).toFixed(2)}</span>
                     </div>
+                </div>
+
+                <div class="payment-info">
+                    ${sale.payment?.payments ? `
+                        <div style="font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 3px;">PAGAMENTOS:</div>
+                        ${sale.payment.payments.map(p => `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>${translatePaymentMethod(p.methodLabel || p.method)}:</span>
+                                <span>R$ ${parseFloat(p.amount).toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                        ${sale.payment?.change > 0 ? `
+                            <div style="display: flex; justify-content: space-between; margin-top: 2px; border-top: 1px dotted #000;">
+                                <span>TROCO:</span>
+                                <span>R$ ${parseFloat(sale.payment.change).toFixed(2)}</span>
+                            </div>
+                        ` : ''}
+                    ` : `
+                        FORMA DE PAGAMENTO: ${translatePaymentMethod(sale.payment?.method || 'Dinheiro')}
+                        ${sale.payment?.installments > 1 ? `(${sale.payment.installments}x)` : ''}
+                    `}
                 </div>
 
                 <div class="footer">
                     ${store.receiptFooter || 'Obrigado pela preferência!'}<br/>
                     <br/>
-                    <small>System Vexa</small>
+                    <small>Caramelo PDV</small>
                 </div>
             </div>
         </body>
@@ -176,7 +229,7 @@ export const printVoucher = (voucher, storeData, settings) => {
                 </div>
 
                 <div class="footer">
-                    <small>System Vexa</small>
+                    <small>Caramelo PDV</small>
                 </div>
             </div>
         </body>
@@ -248,7 +301,7 @@ export const printDebtReceipt = (debt, inst, storeData, settings) => {
                 <div class="footer">
                     ${store.receiptFooter || 'Obrigado pela preferência!'}<br/>
                     <br/>
-                    <small>System Vexa</small>
+                    <small>Caramelo PDV</small>
                 </div>
             </div>
         </body>
@@ -331,7 +384,7 @@ export const printComandaPreBill = (comanda, storeData, settings) => {
                 <div class="footer">
                     Obrigado pela preferência!<br/>
                     <br/>
-                    <small>System Vexa</small>
+                    <small>Caramelo PDV</small>
                 </div>
             </div>
         </body>
@@ -386,7 +439,7 @@ export const printDebtorReport = (debts, storeData) => {
                 </div>
 
                 <div class="footer">
-                    <small>System Vexa - Total de ${pendingDebts.length} devedores</small>
+                    <small>Caramelo PDV - Total de ${pendingDebts.length} devedores</small>
                 </div>
             </div>
         </body>
@@ -451,7 +504,7 @@ export const printCustomerHistory = (customer, sales, storeData) => {
                 </div>
 
                 <div class="footer">
-                    <small>${store.name || 'Sistema Vexa'}</small>
+                    <small>${store.name || 'Sistema Caramelo'}</small>
                 </div>
             </div>
         </body>

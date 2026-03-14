@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, AreaChart, A
 import PinModal from '../components/PinModal';
 import { formatCurrency, formatDate, generateId } from '../utils/calculations';
 import { getCurrentStore } from '../utils/storage';
-import { getSales, getSellers, getTransactions } from '../services/dbService';
+import { getSales, getSellers, getTransactions, getPastRegisters } from '../services/dbService';
 
 const Reports = () => {
     // Security
@@ -52,13 +52,15 @@ const Reports = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [sellersList, setSellersList] = useState([]); // For dropdown
+    const [cashRegisters, setCashRegisters] = useState([]);
+    const [selectedAuditRegister, setSelectedAuditRegister] = useState(null);
 
     // LOAD DATA ON MOUNT
     useEffect(() => {
         const load = async () => {
             const store = getCurrentStore();
             if (store) {
-                setStoreName(store.name || 'Vexa');
+                setStoreName(store.name || 'Caramelo');
 
                 // Load Sales
                 const loadedSales = await getSales(store.id);
@@ -85,6 +87,10 @@ const Reports = () => {
                 // Load Transactions
                 const loadedTransactions = await getTransactions(store.id);
                 setTransactions(loadedTransactions);
+
+                // Load Registers
+                const loadedRegisters = await getPastRegisters(store.id);
+                setCashRegisters(loadedRegisters);
             }
         };
         load();
@@ -227,7 +233,9 @@ const Reports = () => {
             if (!sellersMap[sellerName]) sellersMap[sellerName] = 0;
 
             // Immediate revenue attribution (non-debt part)
-            let saleLiquid = sale.total;
+            const saleDiscount = parseFloat(sale.payment?.discount) || 0;
+            const saleNet = sale.total - saleDiscount;
+            let saleLiquid = saleNet;
             let paymentSum = 0;
             let remainingChange = parseFloat(sale.payment?.change) || 0;
 
@@ -270,11 +278,11 @@ const Reports = () => {
             sellersMap[sellerName] += saleLiquid;
 
             // Pro-rata counting for current sale (only what was paid now)
-            const paidRatio = sale.total > 0 ? (saleLiquid / sale.total) : 0;
-            proRataProfit += (saleGlobalProfit * paidRatio);
+            const paidRatio = saleNet > 0 ? (saleLiquid / saleNet) : 0;
+            proRataProfit += ((saleGlobalProfit - saleDiscount) * paidRatio);
             proRataCost += (saleGlobalCost * paidRatio);
 
-            const difference = sale.total - paymentSum;
+            const difference = saleNet - paymentSum;
             if (difference > 0.05) paymentsMap['Outros'] = (paymentsMap['Outros'] || 0) + difference;
         });
 
@@ -317,7 +325,7 @@ const Reports = () => {
     let hasVoucherPermission = false;
     let hasCancelPermission = false;
     try {
-        const currentUser = JSON.parse(sessionStorage.getItem('vexa_report_user') || '{}');
+        const currentUser = JSON.parse(sessionStorage.getItem('caramelo_report_user') || '{}');
         const role = currentUser.role;
         const perms = currentUser.permissions || [];
 
@@ -368,7 +376,7 @@ const Reports = () => {
                                 setIsAuthorized(true);
                                 setShowPinModal(false);
                                 // Store current user for further checks
-                                sessionStorage.setItem('vexa_report_user', JSON.stringify(user));
+                                sessionStorage.setItem('caramelo_report_user', JSON.stringify(user));
                             } else {
                                 alert('Acesso Negado: Você não tem permissão para ver relatórios.');
                             }
@@ -639,10 +647,131 @@ const Reports = () => {
                 </div>
             </div>
 
+            {/* SEGMENTO: HISTÓRICO DE CAIXA (NOVO) */}
+            <div className="mt-12 bg-white text-black rounded-sm overflow-hidden border border-gray-300 shadow-sm">
+                <div className="bg-gray-800 p-3 text-white text-center font-bold uppercase text-sm tracking-wide flex justify-between items-center">
+                    <span>Histórico de Fechamentos de Caixa (Auditoria)</span>
+                    <span className="text-xs font-normal opacity-60">Últimos 20 turnos</span>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-xs font-mono border-collapse">
+                        <thead>
+                            <tr className="bg-gray-100 border-b border-black">
+                                <th className="text-left p-3">Data Fechamento</th>
+                                <th className="text-left p-3">Operador</th>
+                                <th className="text-right p-3">Abertura</th>
+                                <th className="text-right p-3">Esperado</th>
+                                <th className="text-right p-3">Informado</th>
+                                <th className="text-right p-3">Diferença</th>
+                                <th className="text-center p-3">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {cashRegisters.length > 0 ? cashRegisters.map((reg, idx) => (
+                                <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
+                                    <td className="p-3">{new Date(reg.closedAt || reg.date).toLocaleString()}</td>
+                                    <td className="p-3 font-sans font-bold">{reg.closedByName || '---'}</td>
+                                    <td className="p-3 text-right">{formatCurrency(reg.openingBalance)}</td>
+                                    <td className="p-3 text-right">{formatCurrency(reg.expectedBalance)}</td>
+                                    <td className="p-3 text-right font-bold">{formatCurrency(reg.closingBalance)}</td>
+                                    <td className={`p-3 text-right font-bold ${reg.difference < 0 ? 'text-red-600' : (reg.difference > 0 ? 'text-blue-600' : 'text-green-600')}`}>
+                                        {formatCurrency(reg.difference)}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                        <button
+                                            onClick={() => setSelectedAuditRegister(reg)}
+                                            className="bg-primary text-black px-2 py-1 rounded text-[10px] font-bold uppercase hover:bg-primary/80"
+                                        >
+                                            Detalhes
+                                        </button>
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr><td colSpan="7" className="p-10 text-center text-gray-500 font-sans italic">Nenhum histórico de caixa fechado encontrado.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* AUDIT MODAL (DETALHES DO CAIXA) */}
+            {selectedAuditRegister && (
+                <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white text-black p-6 rounded-lg w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                        <button onClick={() => setSelectedAuditRegister(null)} className="absolute top-4 right-4 text-gray-400 hover:text-black">
+                            <FaTimes size={24} />
+                        </button>
+
+                        <div className="text-center border-b border-dashed border-gray-400 pb-4 mb-4">
+                            <h2 className="font-bold text-xl uppercase">DADOS DO TURNO</h2>
+                            <p className="text-xs">{new Date(selectedAuditRegister.closedAt || selectedAuditRegister.date).toLocaleString()}</p>
+                            <p className="text-sm mt-1 font-bold">Responsável: {selectedAuditRegister.closedByName}</p>
+                        </div>
+
+                        <div className="font-mono text-sm space-y-2 border-b border-dashed border-gray-400 pb-4 mb-4">
+                            <div className="flex justify-between">
+                                <span>SALDO INICIAL:</span>
+                                <span>{formatCurrency(selectedAuditRegister.openingBalance)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>VENDAS DINHEIRO:</span>
+                                <span>{formatCurrency(selectedAuditRegister.salesCash)}</span>
+                            </div>
+                            <div className="flex justify-between font-bold text-red-600">
+                                <span>(-) SANGRIAS TOTAL:</span>
+                                <span>{formatCurrency(selectedAuditRegister.totalSangrias)}</span>
+                            </div>
+
+                            {/* Detalhe de Sangrias */}
+                            {selectedAuditRegister.movements && selectedAuditRegister.movements.filter(m => m.type === 'SANGRIA').length > 0 && (
+                                <div className="pl-4 border-l-2 border-gray-200 my-2 text-xs text-gray-600">
+                                    <p className="font-bold mb-1 opacity-50 underline">Motivos das Sangrias:</p>
+                                    {selectedAuditRegister.movements.filter(m => m.type === 'SANGRIA').map((m, i) => (
+                                        <div key={i} className="flex justify-between py-1 border-b border-gray-100 last:border-0">
+                                            <span>• {m.reason} <br /><small className="opacity-60">(Aut: {m.authorizedByName})</small></span>
+                                            <span className="font-bold">{formatCurrency(m.amount)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className="flex justify-between font-bold pt-2 border-t border-dotted border-gray-300">
+                                <span>VALOR ESPERADO:</span>
+                                <span>{formatCurrency(selectedAuditRegister.expectedBalance)}</span>
+                            </div>
+                            <div className="flex justify-between font-black text-lg pt-1">
+                                <span>VALOR FINAL:</span>
+                                <span>{formatCurrency(selectedAuditRegister.closingBalance)}</span>
+                            </div>
+                            <div className={`flex justify-between font-bold text-base pt-1 ${selectedAuditRegister.difference < 0 ? 'bg-red-50 text-red-700' : (selectedAuditRegister.difference > 0 ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700')} p-2 rounded`}>
+                                <span>DIFERENÇA (QUEBRA):</span>
+                                <span>{formatCurrency(selectedAuditRegister.difference)}</span>
+                            </div>
+                        </div>
+
+                        {selectedAuditRegister.notes && (
+                            <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                                <p className="text-xs font-bold uppercase text-gray-500 mb-2">Observações / Justificativa:</p>
+                                <p className="text-sm italic font-serif leading-relaxed text-gray-800">"{selectedAuditRegister.notes}"</p>
+                            </div>
+                        )}
+
+                        <div className="mt-8 flex gap-3">
+                            <button
+                                onClick={() => setSelectedAuditRegister(null)}
+                                className="w-full bg-black text-white font-bold py-3 rounded uppercase text-sm tracking-widest shadow-lg active:scale-95 transition-all"
+                            >
+                                Fechar Auditoria
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Footer Alert */}
             <div className="mt-auto pt-6 text-center">
                 <p className="text-xs text-gray-600 font-mono">
-                    * Relatório gerado em sistemavexa.com.br
+                    * Relatório gerado em caramelopdv.com.br
                 </p>
             </div>
         </div>

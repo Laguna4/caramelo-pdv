@@ -158,7 +158,7 @@ const Sales = () => {
     };
 
     const handlePrintReceipt = (sale) => {
-        const settings = JSON.parse(localStorage.getItem('vexa_printer_settings') || '{}');
+        const settings = JSON.parse(localStorage.getItem('caramelo_printer_settings') || '{}');
         printReceipt(sale, currentStore, settings);
     };
 
@@ -525,7 +525,7 @@ const Sales = () => {
                                 <button
                                     className="btn btn-primary w-full py-4 text-lg font-bold flex items-center justify-center gap-2"
                                     onClick={() => {
-                                        const settings = JSON.parse(localStorage.getItem('vexa_printer_settings') || '{}');
+                                        const settings = JSON.parse(localStorage.getItem('caramelo_printer_settings') || '{}');
                                         printVoucher(generatedVoucher, currentStore, settings);
                                     }}
                                 >

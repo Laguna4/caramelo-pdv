@@ -70,7 +70,7 @@ function App() {
                 }
 
                 // Sync fresh data to localStorage to ensure PINs and settings are always up to date
-                localStorage.setItem('vexa_current_store', JSON.stringify(freshData));
+                localStorage.setItem('caramelo_current_store', JSON.stringify(freshData));
                 setCurrentStore(freshData);
 
               } else {

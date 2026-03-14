@@ -716,7 +716,7 @@ const POS = () => {
                 </div>
             </div>
 
-            {showPaymentModal && <PaymentModal total={total} onClose={() => setShowPaymentModal(false)} onComplete={completeSale} storeName={currentStore?.name} cnpj={currentStore?.cnpj} customer={selectedCustomer} onOpenCustomerModal={() => setShowCustomerModal(true)} onSaveBudget={handleSaveBudget} />}
+            {showPaymentModal && <PaymentModal items={cartItems} total={total} onClose={() => setShowPaymentModal(false)} onComplete={completeSale} storeName={currentStore?.name} cnpj={currentStore?.cnpj} customer={selectedCustomer} onOpenCustomerModal={() => setShowCustomerModal(true)} onSaveBudget={handleSaveBudget} />}
             <PinModal isOpen={showOperatorModal} onClose={handleOperatorLoginClose} onSuccess={handleOperatorAuth} title="Identifique-se" requiredRole="SELLER" />
             <ProductSearchModal isOpen={showSearchModal} onClose={() => { setShowSearchModal(false); setTimeout(() => barcodeInputRef.current?.focus(), 100); }} results={searchResults} onSelect={handleSelectProduct} />
             <SalespersonSelectionModal isOpen={showSalespersonModal} onClose={() => setShowSalespersonModal(false)} sellers={sellers} onSelect={(seller) => { setFinalizingSeller(seller); setShowSalespersonModal(false); setShowPaymentModal(true); }} />

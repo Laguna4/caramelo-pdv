@@ -54,8 +54,8 @@ const Sellers = () => {
             loadSellers(store.id);
 
             // Tutorial Check
-            const tutorialActive = localStorage.getItem('vexa_tutorial_mode') !== 'false';
-            const tutorialShown = localStorage.getItem('vexa_tutorial_sellers_shown');
+            const tutorialActive = localStorage.getItem('caramelo_tutorial_mode') !== 'false';
+            const tutorialShown = localStorage.getItem('caramelo_tutorial_sellers_shown');
             if (tutorialActive && !tutorialShown) {
                 setShowTutorial(true);
             }
@@ -69,7 +69,7 @@ const Sellers = () => {
 
     const closeTutorial = () => {
         setShowTutorial(false);
-        localStorage.setItem('vexa_tutorial_sellers_shown', 'true');
+        localStorage.setItem('caramelo_tutorial_sellers_shown', 'true');
     };
 
     const loadSellers = async (storeId) => {

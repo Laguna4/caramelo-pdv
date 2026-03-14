@@ -64,6 +64,20 @@ const Kitchen = () => {
         };
     }).filter(c => c.pendingItems.length > 0);
 
+    const readyOrders = comandas.map(comanda => {
+        const readyItems = (comanda.itens || []).map((item, idx) => ({ ...item, originalIndex: idx }))
+            .filter(item => item.status_cozinha === 'pronto')
+            .sort((a, b) => {
+                const timeA = a.addedAt ? new Date(a.addedAt).getTime() : 0;
+                const timeB = b.addedAt ? new Date(b.addedAt).getTime() : 0;
+                return timeA - timeB;
+            });
+        return {
+            ...comanda,
+            readyItems
+        };
+    }).filter(c => c.readyItems.length > 0);
+
     return (
         <div className="flex flex-col h-full bg-[#050505] text-white p-4 md:p-6 overflow-hidden">
             <div className="flex justify-between items-center mb-6 shrink-0">
@@ -144,6 +158,39 @@ const Kitchen = () => {
                                                     <FaCheck /> PRONTO
                                                 </button>
                                             </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {readyOrders.length > 0 && (
+                <div className="mt-8 shrink-0">
+                    <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-green-500">
+                        <FaCheck /> Pedidos Prontos (Aguardando Entrega)
+                    </h2>
+                    <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                        {readyOrders.map(comanda => (
+                            <div key={comanda.id} className="min-w-[280px] w-[280px] bg-[#111] border border-green-500/30 rounded-2xl p-4 flex flex-col gap-3">
+                                <div className="flex justify-between items-center border-b border-gray-800 pb-2">
+                                    <h3 className="font-bold text-green-400">{comanda.identificador}</h3>
+                                    <span className="text-[10px] bg-green-900/30 text-green-500 px-2 py-0.5 rounded-full font-bold uppercase">Pronto</span>
+                                </div>
+                                <div className="space-y-2">
+                                    {comanda.readyItems.map(item => (
+                                        <div key={item.originalIndex} className="flex justify-between items-center text-sm">
+                                            <span className="text-gray-300">
+                                                <span className="text-green-500 font-bold">{item.quantity}x</span> {item.name}
+                                            </span>
+                                            <button
+                                                onClick={() => handleChangeItemStatus(comanda, item.originalIndex, 'entregue')}
+                                                className="bg-green-600 hover:bg-green-500 text-white text-[10px] px-3 py-1 rounded-lg font-bold uppercase transition-colors"
+                                            >
+                                                Entregar
+                                            </button>
                                         </div>
                                     ))}
                                 </div>

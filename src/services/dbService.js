@@ -614,6 +614,37 @@ export const addCashMovement = async (registerId, movement) => {
     }
 };
 
+export const getPastRegisters = async (storeId, limitCount = 20) => {
+    try {
+        const q = query(
+            collection(db, "cash_registers"),
+            where("storeId", "==", storeId),
+            where("status", "==", "CLOSED"),
+            orderBy("closedAt", "desc"),
+            limit(limitCount)
+        );
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Error fetching past registers:", error);
+        // Fallback for missing index
+        try {
+            const qBasic = query(
+                collection(db, "cash_registers"),
+                where("storeId", "==", storeId),
+                where("status", "==", "CLOSED")
+            );
+            const querySnapshot = await getDocs(qBasic);
+            const registers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return registers.sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt)).slice(0, limitCount);
+        } catch (innerError) {
+            console.error("Error in fallback registers search:", innerError);
+            return [];
+        }
+    }
+};
+
+
 // --- DEBTS (Crediário) ---
 
 export const addDebt = async (debtData) => {
@@ -703,6 +734,20 @@ export const getBudgetsByCustomer = async (storeId, customerId) => {
         return budgets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } catch (error) {
         console.error("Error fetching budgets:", error);
+        return [];
+    }
+};
+
+export const getBudgetsByStore = async (storeId) => {
+    try {
+        const q = query(
+            collection(db, "budgets"),
+            where("storeId", "==", storeId)
+        );
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Error fetching store budgets:", error);
         return [];
     }
 };

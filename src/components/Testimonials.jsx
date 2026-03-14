@@ -1,27 +1,30 @@
 import React from 'react';
 import { FaStar, FaQuoteLeft } from 'react-icons/fa';
+import lavicLogo from '../assets/lavic-logo.png';
+import bellaLogo from '../assets/bella-logo.png';
+import vienaLogo from '../assets/viena-logo.png';
 
 const testimonials = [
     {
-        name: "Ricardo Silva",
-        role: "Dono da Padaria Pão Dourado",
-        text: "O Caramelo mudou minha vida. Antes eu passava horas fechando caixa no caderno. Agora faço tudo em 10 minutos pelo celular.",
+        name: "Lojista La Vic",
+        role: "La Vic Produtos",
+        text: "O melhor sistema que já usei até hoje. É simples, rápido e resolveu toda a nossa bagunça com estoque e vendas. O Caramelo é essencial no nosso dia a dia.",
         rating: 5,
-        image: "https://randomuser.me/api/portraits/men/32.jpg"
+        image: lavicLogo
     },
     {
-        name: "Fernanda Costa",
-        role: "Gerente, Boutique Flor de Lis",
-        text: "Simples e direto. Meus funcionários aprenderam a usar em um dia. O suporte é incrível também!",
+        name: "Gerente",
+        role: "Bella Boutique",
+        text: "Meus funcionários aprenderam a usar em 10 minutos. O suporte pelo WhatsApp é muito rápido e o visual do sistema é o mais bonito que já vi.",
         rating: 5,
-        image: "https://randomuser.me/api/portraits/women/44.jpg"
+        image: bellaLogo
     },
     {
-        name: "Carlos Eduardo",
-        role: "Mercadinho do Bairro",
-        text: "Melhor investimento que fiz. O controle de estoque automático me avisa quando comprar. Recomendo demais.",
+        name: "Lojista",
+        role: "Use Viena",
+        text: "O Caramelo facilitou demais as nossas vendas. É prático, o visual é clean e as funções de estoque são muito precisas. Recomendo para todos os lojistas!",
         rating: 5,
-        image: "https://randomuser.me/api/portraits/men/85.jpg"
+        image: vienaLogo
     }
 ];
 

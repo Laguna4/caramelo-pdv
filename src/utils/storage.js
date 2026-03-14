@@ -2,14 +2,14 @@
 // This will be replaced with Firebase in production
 
 const STORAGE_KEYS = {
-    STORES: 'vexa_stores',
-    PRODUCTS: 'vexa_products',
-    SALES: 'vexa_sales',
-    CUSTOMERS: 'vexa_customers',
-    SELLERS: 'vexa_sellers',
-    CURRENT_USER: 'vexa_current_user',
-    CURRENT_STORE: 'vexa_current_store',
-    VOUCHERS: 'vexa_vouchers'
+    STORES: 'caramelo_stores',
+    PRODUCTS: 'caramelo_products',
+    SALES: 'caramelo_sales',
+    CUSTOMERS: 'caramelo_customers',
+    SELLERS: 'caramelo_sellers',
+    CURRENT_USER: 'caramelo_current_user',
+    CURRENT_STORE: 'caramelo_current_store',
+    VOUCHERS: 'caramelo_vouchers'
 };
 
 // Get data from localStorage
@@ -204,7 +204,7 @@ export const logout = () => {
 
 export const getSettings = () => {
     try {
-        const data = localStorage.getItem('vexa_printer_settings');
+        const data = localStorage.getItem('caramelo_printer_settings');
         return data ? JSON.parse(data) : { receiptPrinter: 'thermal_80', autoPrint: true };
     } catch (e) {
         return { receiptPrinter: 'thermal_80', autoPrint: true };

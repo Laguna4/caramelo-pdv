@@ -84,8 +84,8 @@ const Products = () => {
             loadProducts(store.id);
 
             // Tutorial Check
-            const tutorialActive = localStorage.getItem('vexa_tutorial_mode') !== 'false';
-            const tutorialShown = localStorage.getItem('vexa_tutorial_products_shown');
+            const tutorialActive = localStorage.getItem('caramelo_tutorial_mode') !== 'false';
+            const tutorialShown = localStorage.getItem('caramelo_tutorial_products_shown');
             if (tutorialActive && !tutorialShown) {
                 setShowTutorial(true);
             }
@@ -94,7 +94,7 @@ const Products = () => {
 
     const closeTutorial = () => {
         setShowTutorial(false);
-        localStorage.setItem('vexa_tutorial_products_shown', 'true');
+        localStorage.setItem('caramelo_tutorial_products_shown', 'true');
     };
 
     // Update calculated profit whenever price or cost changes

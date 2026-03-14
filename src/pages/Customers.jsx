@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaUser, FaIdCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaEye, FaFolderOpen, FaShoppingCart, FaPrint, FaCheck } from 'react-icons/fa';
-import { getCustomers, addCustomer, updateCustomer, deleteCustomer, getStore, getBudgetsByCustomer, deleteBudget } from '../services/dbService'; // Added getStore
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaUser, FaIdCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaEye, FaFolderOpen, FaShoppingCart, FaPrint, FaCheck, FaFileAlt, FaMoneyBillWave } from 'react-icons/fa';
+import { getCustomers, addCustomer, updateCustomer, deleteCustomer, getStore, getBudgetsByCustomer, deleteBudget, getBudgetsByStore, getDebtsByStore } from '../services/dbService'; // Added getStore, getBudgetsByStore, getDebtsByStore
 import { useNavigate } from 'react-router-dom';
 import { getCurrentStore, getSettings } from '../utils/storage';
 import { formatCurrency } from '../utils/calculations';
@@ -21,6 +21,11 @@ const Customers = () => {
     const [customerBudgets, setCustomerBudgets] = useState([]);
     const [loadingBudgets, setLoadingBudgets] = useState(false);
 
+    // Indicators State
+    const [debtorIds, setDebtorIds] = useState(new Set());
+    const [budgetCustomerIds, setBudgetCustomerIds] = useState(new Set());
+    const [activeFilter, setActiveFilter] = useState('all'); // all, debtors, budgets
+
     const [formData, setFormData] = useState({
         email: '',
         address: '',
@@ -37,8 +42,43 @@ const Customers = () => {
     useEffect(() => {
         const store = getCurrentStore();
         setCurrentStore(store);
-        if (store) loadCustomers(store.id);
+        if (store) {
+            loadCustomers(store.id);
+            loadIndicators(store.id);
+        }
     }, []);
+
+    const loadIndicators = async (storeId) => {
+        try {
+            const [allBudgets, allDebts] = await Promise.all([
+                getBudgetsByStore(storeId),
+                getDebtsByStore(storeId)
+            ]);
+
+            const budgetsWithPending = new Set(
+                allBudgets
+                    .filter(b => b.status === 'PENDING' || b.status === 'OPEN' || !b.status)
+                    .map(b => String(b.customerId || b.customer?.id))
+            );
+
+            const pendingDebts = new Set(
+                allDebts
+                    .filter(d => d.remainingAmount > 0.01)
+                    .map(d => String(d.customerId || d.customer?.id))
+            );
+
+            setBudgetCustomerIds(budgetsWithPending);
+            setDebtorIds(pendingDebts);
+            console.log("Indicators load complete!", {
+                budgetsFound: budgetsWithPending.size,
+                debtsFound: pendingDebts.size,
+                budgetIds: Array.from(budgetsWithPending),
+                debtIds: Array.from(pendingDebts)
+            });
+        } catch (error) {
+            console.error("Error loading indicators:", error);
+        }
+    };
 
     const loadCustomers = async (storeId) => {
         if (!storeId) return;
@@ -148,11 +188,19 @@ const Customers = () => {
         }
     };
 
-    const filteredCustomers = customers.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.cpf?.includes(searchTerm) ||
-        c.phone?.includes(searchTerm)
-    );
+    const filteredCustomers = customers.filter(c => {
+        const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.cpf?.includes(searchTerm) ||
+            c.phone?.includes(searchTerm);
+
+        if (!matchesSearch) return false;
+
+        const cId = String(c.id);
+        if (activeFilter === 'debtors') return debtorIds.has(cId);
+        if (activeFilter === 'budgets') return budgetCustomerIds.has(cId);
+
+        return true;
+    });
 
     const [showPurchaseHistory, setShowPurchaseHistory] = useState(false);
     const [purchaseHistory, setPurchaseHistory] = useState([]);
@@ -242,15 +290,36 @@ const Customers = () => {
                     </button>
                 </div>
 
-                <div className="card mb-4 p-4 flex gap-4 bg-[#111] border border-gray-800 rounded-lg">
-                    <div style={{ flex: 1, display: 'flex', gap: '1rem' }}>
-                        <FaSearch className="text-gray-500 mt-3" />
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <div className="flex-1 card p-4 flex gap-4 bg-[#111] border border-gray-800 rounded-xl">
+                        <FaSearch className="text-gray-500 mt-1" />
                         <input
-                            className="input-premium"
+                            className="w-full bg-transparent border-none text-white focus:outline-none"
                             placeholder="Buscar por nome, CPF ou telefone..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
+                    </div>
+
+                    <div className="flex bg-[#111] border border-gray-800 rounded-xl p-1 shrink-0">
+                        <button
+                            onClick={() => setActiveFilter('all')}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeFilter === 'all' ? 'bg-rose-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            TODOS
+                        </button>
+                        <button
+                            onClick={() => setActiveFilter('debtors')}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeFilter === 'debtors' ? 'bg-red-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            <FaMoneyBillWave /> DEVEDORES
+                        </button>
+                        <button
+                            onClick={() => setActiveFilter('budgets')}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeFilter === 'budgets' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            <FaFileAlt /> ORÇAMENTOS
+                        </button>
                     </div>
                 </div>
 
@@ -268,7 +337,23 @@ const Customers = () => {
                         <tbody>
                             {filteredCustomers.map(customer => (
                                 <tr key={customer.id}>
-                                    <td style={{ fontWeight: 'bold' }}>{customer.name}</td>
+                                    <td style={{ fontWeight: 'bold' }}>
+                                        <div className="flex items-center gap-2">
+                                            {customer.name}
+                                            <div className="flex gap-1">
+                                                {budgetCustomerIds.has(String(customer.id)) && (
+                                                    <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded shadow-[0_0_10px_rgba(37,99,235,0.5)] flex items-center gap-1 animate-pulse border border-blue-400" title="Possui Orçamento Aberto">
+                                                        <FaFileAlt size={8} /> ORÇAMENTO EM ABERTO
+                                                    </span>
+                                                )}
+                                                {debtorIds.has(String(customer.id)) && (
+                                                    <span className="bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded shadow-[0_0_10px_rgba(220,38,38,0.5)] flex items-center gap-1 border border-red-400" title="Possui Débito Pendente">
+                                                        <FaMoneyBillWave size={8} /> DÉBITO PENDENTE
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td style={{ fontFamily: 'monospace' }}>{customer.cpf || '-'}</td>
                                     <td>{customer.phone || '-'}</td>
                                     <td className="text-muted">{customer.email || '-'}</td>

@@ -128,7 +128,7 @@ const Settings = () => {
         }
 
         // Load Printer Settings
-        const savedPrinter = localStorage.getItem('vexa_printer_settings');
+        const savedPrinter = localStorage.getItem('caramelo_printer_settings');
         if (savedPrinter) {
             setPrinterSettings(JSON.parse(savedPrinter));
         }
@@ -218,10 +218,10 @@ const Settings = () => {
             // 4. Update Local Session
             const updatedLocalStore = { ...storeData, ...storeUpdates };
             saveStore(updatedLocalStore);
-            localStorage.setItem('vexa_current_store', JSON.stringify(updatedLocalStore));
+            localStorage.setItem('caramelo_current_store', JSON.stringify(updatedLocalStore));
 
             // Save Printer Settings
-            localStorage.setItem('vexa_printer_settings', JSON.stringify(printerSettings));
+            localStorage.setItem('caramelo_printer_settings', JSON.stringify(printerSettings));
 
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);

@@ -16,7 +16,7 @@ const Dashboard = ({ store }) => {
     const [counts, setCounts] = useState({ products: 0, customers: 0, sellers: 0 });
     const [liveStore, setLiveStore] = useState(store);
     const [tutorialMode, setTutorialMode] = useState(() => {
-        const saved = localStorage.getItem('vexa_tutorial_mode');
+        const saved = localStorage.getItem('caramelo_tutorial_mode');
         return saved === null ? true : saved === 'true'; // Default ON for new users
     });
     const [cashRegister, setCashRegister] = useState(null);
@@ -112,7 +112,7 @@ const Dashboard = ({ store }) => {
                             const newValue = !tutorialMode;
                             console.log("Toggling Help Mode to:", newValue);
                             setTutorialMode(newValue);
-                            localStorage.setItem('vexa_tutorial_mode', newValue.toString());
+                            localStorage.setItem('caramelo_tutorial_mode', newValue.toString());
                         }}
                         title={tutorialMode ? 'Desativar Modo Ajuda' : 'Ativar Modo Ajuda'}
                     >
@@ -188,7 +188,7 @@ const Dashboard = ({ store }) => {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    const printerSettings = JSON.parse(localStorage.getItem('vexa_printer_settings') || '{}');
+                                                    const printerSettings = JSON.parse(localStorage.getItem('caramelo_printer_settings') || '{}');
                                                     printComandaPreBill(com, liveStore, printerSettings);
                                                 }}
                                                 title="Imprimir Prévia para o Cliente"
