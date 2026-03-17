@@ -19,6 +19,8 @@ const Debts = () => {
     const [itemsModal, setItemsModal] = useState({ isOpen: false, items: [], sale: null });
     const [historyModal, setHistoryModal] = useState({ isOpen: false, customer: null, sales: [] });
     const [isProcessing, setIsProcessing] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [viewMode, setViewMode] = useState('MONTH');
 
     const store = getCurrentStore();
 
@@ -163,7 +165,43 @@ const Debts = () => {
         }
     };
 
-    const filteredDebts = debts.filter(d =>
+    const changeMonth = (delta) => {
+        const d = new Date(selectedDate);
+        d.setMonth(d.getMonth() + delta);
+        setSelectedDate(d);
+    };
+
+    const totalStoreReceivable = debts.filter(d => d.status !== 'PAID' && d.remainingAmount > 0.01).reduce((acc, d) => acc + (d.remainingAmount || 0), 0);
+
+    const getMonthDebts = () => {
+        if (viewMode === 'ALL') return debts;
+        const currentMonth = selectedDate.getMonth();
+        const currentYear = selectedDate.getFullYear();
+        
+        // Retornar dívidas que possuem parcelas (pagas ou pendentes) neste mês
+        return debts.filter(d => {
+            return d.installments.some(inst => {
+                const dueDate = new Date(inst.dueDate);
+                return dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear;
+            });
+        });
+    };
+
+    const monthReceivable = getMonthDebts().reduce((acc, d) => {
+        const currentMonth = selectedDate.getMonth();
+        const currentYear = selectedDate.getFullYear();
+        const monthAmount = d.installments
+            .filter(inst => {
+                const dueDate = new Date(inst.dueDate);
+                return inst.status !== 'PAID' && dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear;
+            })
+            .reduce((sum, inst) => sum + inst.amount, 0);
+        return acc + monthAmount;
+    }, 0);
+
+    const displayedDebts = getMonthDebts();
+
+    const filteredDebts = displayedDebts.filter(d =>
         d.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         d.id.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -199,6 +237,45 @@ const Debts = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-[#111] p-6 rounded-2xl border border-white/5 flex flex-col justify-center">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Geral a Receber</span>
+                    <div className="text-2xl font-bold text-caramelo-primary font-mono">{formatCurrency(totalStoreReceivable)}</div>
+                </div>
+
+                <div className="bg-[#111] p-6 rounded-2xl border border-caramelo-primary/20 flex flex-col items-center gap-4 shadow-lg shadow-caramelo-primary/5">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                        <button 
+                            onClick={() => setViewMode('MONTH')} 
+                            className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all ${viewMode === 'MONTH' ? 'bg-caramelo-primary text-white shadow-lg shadow-caramelo-primary/20' : 'bg-white/5 text-gray-500 hover:text-white'}`}
+                        >
+                            Por Mês
+                        </button>
+                        <button 
+                            onClick={() => setViewMode('ALL')} 
+                            className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all ${viewMode === 'ALL' ? 'bg-caramelo-primary text-white shadow-lg shadow-caramelo-primary/20' : 'bg-white/5 text-gray-500 hover:text-white'}`}
+                        >
+                            Ver Tudo
+                        </button>
+                    </div>
+
+                    {viewMode === 'MONTH' ? (
+                        <div className="flex items-center justify-between w-full px-4">
+                            <button onClick={() => changeMonth(-1)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all text-gray-400"><FaChevronDown className="rotate-90" /></button>
+                            <div className="text-center font-bold text-white capitalize">{selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</div>
+                            <button onClick={() => changeMonth(1)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all text-gray-400"><FaChevronUp className="rotate-90" /></button>
+                        </div>
+                    ) : (
+                        <div className="text-gray-400 text-xs font-bold uppercase tracking-widest text-center py-2">Mostrando todos os devedores</div>
+                    )}
+                </div>
+
+                <div className="bg-[#111] p-6 rounded-2xl border border-white/5 flex flex-col justify-center text-right">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{viewMode === 'MONTH' ? 'Previsto para o Mês' : 'Média p/ Mês'}</span>
+                    <div className="text-2xl font-bold text-green-500 font-mono">{formatCurrency(viewMode === 'MONTH' ? monthReceivable : (totalStoreReceivable / 12))}</div>
                 </div>
             </div>
 

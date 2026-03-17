@@ -81,22 +81,29 @@ const Dashboard = ({ store }) => {
     const user = getCurrentUser();
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'OWNER';
 
+    // Helper to check permissions
+    const hasPermission = (permId) => {
+        if (isAdmin) return true;
+        if (!user) return false;
+        return (user.permissions || []).includes(permId);
+    };
+
     const menuItems = [
-        { title: 'Iniciar Venda', icon: <FaCashRegister />, path: '/pos', color: 'text-red-500', bg: 'hover:bg-red-900/20 hover:border-red-500', desc: 'Frente de Caixa (PDV)', shortcut: 'F2' },
-        ...(isAdmin ? [{ title: 'Produtos', icon: <FaBoxOpen />, path: '/products', color: 'text-amber-400', bg: 'hover:bg-amber-900/20 hover:border-amber-400', desc: 'Estoque e Preços', shortcut: 'F3' }] : []),
-        { title: 'Vendas', icon: <FaSearch />, path: '/sales', color: 'text-orange-400', bg: 'hover:bg-orange-900/20 hover:border-orange-400', desc: 'Histórico e Devoluções', shortcut: 'F4' },
-        { title: 'Clientes', icon: <FaUsers />, path: '/customers', color: 'text-blue-400', bg: 'hover:bg-blue-900/20 hover:border-blue-400', desc: 'Gestão de Fiado/CRM', shortcut: 'F5' },
-        { title: 'Financeiro', icon: <FaMoneyBillWave />, path: '/financial', color: 'text-green-400', bg: 'hover:bg-green-900/20 hover:border-green-400', desc: 'Contas e Lucros', shortcut: 'F6' },
-        { title: 'Vendedores', icon: <FaUserTie />, path: '/sellers', color: 'text-purple-400', bg: 'hover:bg-purple-900/20 hover:border-purple-400', desc: 'Equipe e Comissões', shortcut: 'F7' },
-        { title: 'Relatórios', icon: <FaChartLine />, path: '/reports', color: 'text-cyan-400', bg: 'hover:bg-cyan-900/20 hover:border-cyan-400', desc: 'Metas e Resultados', shortcut: 'F8' },
-        { title: 'Painel Fiado', icon: <FaHistory />, path: '/debts', color: 'text-pink-500', bg: 'hover:bg-pink-900/20 hover:border-pink-500', desc: 'Crediário e Cobrança', shortcut: 'F11' },
-        { title: 'Consul. Estoque', icon: <FaClipboardList />, path: '/inventory', color: 'text-yellow-200', bg: 'hover:bg-yellow-900/20 hover:border-yellow-200', desc: 'Preços e Inventário', shortcut: 'F9' },
+        { title: 'Iniciar Venda', icon: <FaCashRegister />, path: '/pos', color: 'text-red-500', bg: 'hover:bg-red-900/20 hover:border-red-500', desc: 'Frente de Caixa (PDV)', shortcut: 'F2', permission: 'pos' },
+        { title: 'Produtos', icon: <FaBoxOpen />, path: '/products', color: 'text-amber-400', bg: 'hover:bg-amber-900/20 hover:border-amber-400', desc: 'Estoque e Preços', shortcut: 'F3', permission: 'products' },
+        { title: 'Vendas', icon: <FaSearch />, path: '/sales', color: 'text-orange-400', bg: 'hover:bg-orange-900/20 hover:border-orange-400', desc: 'Histórico e Devoluções', shortcut: 'F4', permission: 'sales' },
+        { title: 'Clientes', icon: <FaUsers />, path: '/customers', color: 'text-blue-400', bg: 'hover:bg-blue-900/20 hover:border-blue-400', desc: 'Gestão de Fiado/CRM', shortcut: 'F5', permission: 'customers' },
+        { title: 'Financeiro', icon: <FaMoneyBillWave />, path: '/financial', color: 'text-green-400', bg: 'hover:bg-green-900/20 hover:border-green-400', desc: 'Contas e Lucros', shortcut: 'F6', permission: 'financial' },
+        { title: 'Vendedores', icon: <FaUserTie />, path: '/sellers', color: 'text-purple-400', bg: 'hover:bg-purple-900/20 hover:border-purple-400', desc: 'Equipe e Comissões', shortcut: 'F7', permission: 'sellers' },
+        { title: 'Relatórios', icon: <FaChartLine />, path: '/reports', color: 'text-cyan-400', bg: 'hover:bg-cyan-900/20 hover:border-cyan-400', desc: 'Metas e Resultados', shortcut: 'F8', permission: 'reports' },
+        { title: 'Painel Fiado', icon: <FaHistory />, path: '/debts', color: 'text-pink-500', bg: 'hover:bg-pink-900/20 hover:border-pink-500', desc: 'Crediário e Cobrança', shortcut: 'F11', permission: 'debts' },
+        { title: 'Consul. Estoque', icon: <FaClipboardList />, path: '/inventory', color: 'text-yellow-200', bg: 'hover:bg-yellow-900/20 hover:border-yellow-200', desc: 'Preços e Inventário', shortcut: 'F9', permission: 'inventory' },
         ...(liveStore?.enableComandas ? [
-            { title: 'Mesas (Garçom)', icon: <FaUtensils />, path: '/tables', color: 'text-orange-500', bg: 'hover:bg-orange-900/20 hover:border-orange-500', desc: 'Comandas Mobile', shortcut: '' },
-            { title: 'Cozinha (KDS)', icon: <FaFire />, path: '/kitchen', color: 'text-red-500', bg: 'hover:bg-red-900/20 hover:border-red-500', desc: 'Monitor de Pedidos', shortcut: '' }
+            { title: 'Mesas (Garçom)', icon: <FaUtensils />, path: '/tables', color: 'text-orange-500', bg: 'hover:bg-orange-900/20 hover:border-orange-500', desc: 'Comandas Mobile', shortcut: '', permission: 'tables' },
+            { title: 'Cozinha (KDS)', icon: <FaFire />, path: '/kitchen', color: 'text-red-500', bg: 'hover:bg-red-900/20 hover:border-red-500', desc: 'Monitor de Pedidos', shortcut: '', permission: 'kitchen' }
         ] : []),
-        { title: 'Configurações', icon: <FaCog />, path: '/settings', color: 'text-gray-400', bg: 'hover:bg-gray-800 hover:border-gray-500', desc: 'Sistema e Loja', shortcut: 'F10' },
-    ];
+        { title: 'Configurações', icon: <FaCog />, path: '/settings', color: 'text-gray-400', bg: 'hover:bg-gray-800 hover:border-gray-500', desc: 'Sistema e Loja', shortcut: 'F10', permission: 'settings' },
+    ].filter(item => hasPermission(item.permission));
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center p-4 md:p-8 font-sans overflow-x-hidden">

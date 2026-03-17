@@ -67,7 +67,7 @@ const Products = () => {
     const [calculatedProfit, setCalculatedProfit] = useState(0);
 
     // Security State
-    const [isAuthorized, setIsAuthorized] = useState(false);
+    const [authorizedUser, setAuthorizedUser] = useState(null);
     const [showPinModal, setShowPinModal] = useState(false);
     const navigate = useNavigate();
 
@@ -223,6 +223,11 @@ const Products = () => {
     };
 
     const handleDelete = async (productId) => {
+        if (authorizedUser?.role !== 'ADMIN' && authorizedUser?.role !== 'OWNER' && !authorizedUser?.permissions?.includes('delete_product')) {
+            alert('Acesso Negado: Você não tem permissão para EXCLUIR produtos.');
+            return;
+        }
+
         if (confirm('Tem certeza que deseja excluir?')) {
             await deleteProduct(productId);
             loadProducts(currentStore.id);
@@ -439,7 +444,7 @@ const Products = () => {
     );
 
     // === RENDER ===
-    if (!isAuthorized) {
+    if (!authorizedUser) {
         return (
             <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white relative">
                 <div className="absolute inset-0 bg-black/90 backdrop-blur-sm z-10" />
@@ -447,14 +452,11 @@ const Products = () => {
                     isOpen={showPinModal}
                     onClose={() => navigate('/dashboard')}
                     title="Acesso Restrito: Cadastro de Produtos"
-                    requiredRole="ADMIN"
+                    requiredRole="MANAGER"
+                    requiredPermission="products"
                     onSuccess={(user) => {
-                        if (user.role === 'ADMIN' || user.role === 'OWNER') {
-                            setIsAuthorized(true);
-                            setShowPinModal(false);
-                        } else {
-                            alert('Acesso Negado: Apenas ADMINISTRADORES podem gerenciar produtos.');
-                        }
+                        setAuthorizedUser(user);
+                        setShowPinModal(false);
                     }}
                 />
                 <div className="z-0 text-center opacity-50">

@@ -344,7 +344,20 @@ const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj,
                                     placeholder="0,00"
                                     type="number"
                                     value={discountValue}
-                                    onChange={(e) => setDiscountValue(e.target.value)}
+                                    onChange={(e) => {
+                                        const newVal = e.target.value;
+                                        const tempDiscount = discountType === 'PERCENT' ? (total * (parseFloat(newVal) / 100)) : parseFloat(newVal);
+                                        const newFinalTotal = Math.max(0, total - (tempDiscount || 0));
+
+                                        if (payments.length > 0 && totalPaid > newFinalTotal + 0.01) {
+                                            if (confirm("Este desconto reduz o total para menos do que já foi pago. Deseja remover os pagamentos lançados para ajustar?")) {
+                                                setPayments([]);
+                                            } else {
+                                                return;
+                                            }
+                                        }
+                                        setDiscountValue(newVal);
+                                    }}
                                 />
                             </div>
                         </div>

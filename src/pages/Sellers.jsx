@@ -6,6 +6,36 @@ import { checkLimit } from '../utils/plans';
 import PinModal from '../components/PinModal';
 import TutorialModal from '../components/TutorialModal';
 
+const PERMISSIONS = {
+    modules: [
+        { id: 'pos', label: 'Iniciar Venda (PDV)' },
+        { id: 'products', label: 'Produtos (Estoque)' },
+        { id: 'sales', label: 'Vendas (Histórico)' },
+        { id: 'customers', label: 'Clientes (CRM)' },
+        { id: 'financial', label: 'Financeiro' },
+        { id: 'sellers', label: 'Equipe (Vendedores)' },
+        { id: 'reports', label: 'Relatórios' },
+        { id: 'debts', label: 'Painel Fiado' },
+        { id: 'inventory', label: 'Consultar Estoque' },
+        { id: 'tables', label: 'Mesas (Garçom)' },
+        { id: 'kitchen', label: 'Cozinha (KDS)' },
+        { id: 'settings', label: 'Configurações' }
+    ],
+    actions: [
+        { id: 'cancel_sale', label: 'Cancelar Venda' },
+        { id: 'exchange_item', label: 'Realizar Troca' },
+        { id: 'delete_product', label: 'Excluir Produto' }
+    ]
+};
+
+const ROLE_PRESETS = {
+    'MANAGER': [...PERMISSIONS.modules.map(m => m.id), ...PERMISSIONS.actions.map(a => a.id)],
+    'VENDEDOR': ['pos', 'customers', 'inventory'],
+    'CAIXA': ['pos', 'customers', 'debts', 'inventory', 'sales'],
+    'GARCON': ['tables', 'pos'],
+    'CUSTOM': []
+};
+
 const Sellers = () => {
     const [sellers, setSellers] = useState([]);
     const [showForm, setShowForm] = useState(false);
@@ -40,7 +70,7 @@ const Sellers = () => {
 
     const [formData, setFormData] = useState({
         name: '',
-        role: 'SELLER', // SELLER, MANAGER
+        role: 'VENDEDOR', // VENDEDOR, MANAGER, CAIXA, GARCON, CUSTOM
         pin: '',
         commission: '0',
         active: true,
@@ -61,6 +91,13 @@ const Sellers = () => {
             }
         }
     }, []);
+
+    // Sync role with permissions
+    useEffect(() => {
+        if (formData.role !== 'CUSTOM' && ROLE_PRESETS[formData.role]) {
+            setFormData(prev => ({ ...prev, permissions: ROLE_PRESETS[formData.role] }));
+        }
+    }, [formData.role]);
 
     const handleAuthSuccess = () => {
         setIsAuthorized(true);
@@ -132,7 +169,7 @@ const Sellers = () => {
     };
 
     const resetForm = () => {
-        setFormData({ name: '', role: 'SELLER', pin: '', commission: '0', active: true, permissions: [] });
+        setFormData({ name: '', role: 'VENDEDOR', pin: '', commission: '0', active: true, permissions: ROLE_PRESETS['VENDEDOR'] });
         setEditingSeller(null);
         setShowForm(false);
     };
@@ -225,11 +262,9 @@ const Sellers = () => {
                                 <tr key={seller.id}>
                                     <td style={{ fontWeight: 'bold' }}>{seller.name}</td>
                                     <td>
-                                        {seller.role === 'MANAGER' ? (
-                                            <span className="badge" style={{ background: 'var(--primary)', color: 'black' }}>GERENTE</span>
-                                        ) : (
-                                            <span className="badge" style={{ background: '#333', color: '#ccc' }}>VENDEDOR</span>
-                                        )}
+                                        <span className={`badge ${seller.role === 'MANAGER' ? 'bg-primary text-black' : 'bg-gray-800 text-gray-300'}`}>
+                                            {seller.role}
+                                        </span>
                                     </td>
                                     <td>{seller.commission}%</td>
                                     <td style={{ fontFamily: 'monospace' }}>****</td>
@@ -285,8 +320,11 @@ const Sellers = () => {
                                 value={formData.role}
                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                             >
-                                <option value="SELLER">Vendedor</option>
+                                <option value="VENDEDOR">Vendedor</option>
                                 <option value="MANAGER">Gerente</option>
+                                <option value="CAIXA">Caixa</option>
+                                <option value="GARCON">Garçom</option>
+                                <option value="CUSTOM">Personalizado</option>
                             </select>
                         </div>
                         <div>
@@ -300,40 +338,56 @@ const Sellers = () => {
                         </div>
                     </div>
 
-                    {/* Permissions Section (Only for Sellers) */}
-                    {formData.role === 'SELLER' && (
-                        <div className="mb-4 p-3 bg-gray-900 border border-gray-800 rounded">
-                            <label className="input-label-premium mb-2 block">Permissões Adicionais</label>
-                            <div className="flex flex-col gap-2">
-                                <label className="flex items-center gap-2 text-gray-300 cursor-pointer hover:text-white">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.permissions?.includes('view_reports')}
-                                        onChange={(e) => {
-                                            const perms = formData.permissions || [];
-                                            if (e.target.checked) setFormData({ ...formData, permissions: [...perms, 'view_reports'] });
-                                            else setFormData({ ...formData, permissions: perms.filter(p => p !== 'view_reports') });
-                                        }}
-                                        className="accent-primary"
-                                    />
-                                    <span>Acessar Histórico de Vendas</span>
-                                </label>
-                                <label className="flex items-center gap-2 text-gray-300 cursor-pointer hover:text-white">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.permissions?.includes('issue_voucher')}
-                                        onChange={(e) => {
-                                            const perms = formData.permissions || [];
-                                            if (e.target.checked) setFormData({ ...formData, permissions: [...perms, 'issue_voucher'] });
-                                            else setFormData({ ...formData, permissions: perms.filter(p => p !== 'issue_voucher') });
-                                        }}
-                                        className="accent-primary"
-                                    />
-                                    <span>Emitir Vale Troca / Devolução</span>
-                                </label>
+                    {/* Permissions Grid */}
+                    <div className="mb-6 p-4 bg-black border border-gray-800 rounded-xl">
+                        <h3 className="text-xs font-black text-caramelo-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <FaUserShield /> {formData.role === 'CUSTOM' ? 'DEFINIR PERMISSÕES' : 'PERMISSÕES DO CARGO'}
+                        </h3>
+
+                        <div className="space-y-6">
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Acesso aos Módulos</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {PERMISSIONS.modules.map(mod => (
+                                        <label key={mod.id} className={`flex items-center gap-2 p-2 rounded-lg border transition-all cursor-pointer ${formData.permissions.includes(mod.id) ? 'bg-caramelo-primary/10 border-caramelo-primary/30 text-white' : 'bg-white/5 border-transparent text-gray-500'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.permissions.includes(mod.id)}
+                                                onChange={(e) => {
+                                                    const perms = formData.permissions;
+                                                    const newPerms = e.target.checked ? [...perms, mod.id] : perms.filter(p => p !== mod.id);
+                                                    setFormData({ ...formData, permissions: newPerms, role: 'CUSTOM' });
+                                                }}
+                                                className="accent-caramelo-primary"
+                                            />
+                                            <span className="text-[11px] font-bold">{mod.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Ações Restritas</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {PERMISSIONS.actions.map(act => (
+                                        <label key={act.id} className={`flex items-center gap-2 p-2 rounded-lg border transition-all cursor-pointer ${formData.permissions.includes(act.id) ? 'bg-red-500/10 border-red-500/30 text-white' : 'bg-white/5 border-transparent text-gray-500'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.permissions.includes(act.id)}
+                                                onChange={(e) => {
+                                                    const perms = formData.permissions;
+                                                    const newPerms = e.target.checked ? [...perms, act.id] : perms.filter(p => p !== act.id);
+                                                    setFormData({ ...formData, permissions: newPerms, role: 'CUSTOM' });
+                                                }}
+                                                className="accent-red-500"
+                                            />
+                                            <span className="text-[11px] font-bold">{act.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                    )}
+                    </div>
 
                     <div className="mb-6">
                         <label className="input-label-premium flex items-center gap-2">

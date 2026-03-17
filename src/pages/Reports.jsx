@@ -44,7 +44,9 @@ const Reports = () => {
         voucherTotal: 0,
         receivableTotal: 0,
         outrosTotal: 0,
-        totalCost: 0
+        totalCost: 0,
+        byProduct: [],
+        byCustomer: []
     });
 
     // New Filter States
@@ -54,6 +56,7 @@ const Reports = () => {
     const [sellersList, setSellersList] = useState([]); // For dropdown
     const [cashRegisters, setCashRegisters] = useState([]);
     const [selectedAuditRegister, setSelectedAuditRegister] = useState(null);
+    const [rankingView, setRankingView] = useState('sellers'); // 'sellers', 'products', 'customers'
 
     // LOAD DATA ON MOUNT
     useEffect(() => {
@@ -203,6 +206,8 @@ const Reports = () => {
         let proRataCost = 0;
         const sellersMap = {};
         const paymentsMap = {};
+        const productsMap = {};
+        const customersMap = {};
 
         // Calculate Average Store Margin for Transaction estimation
         let totalPotentialRevenue = 0;
@@ -284,6 +289,22 @@ const Reports = () => {
 
             const difference = saleNet - paymentSum;
             if (difference > 0.05) paymentsMap['Outros'] = (paymentsMap['Outros'] || 0) + difference;
+
+            // Product Ranking Aggregation
+            sale.items.forEach(item => {
+                const pName = item.name || 'Produto sem nome';
+                if (!productsMap[pName]) productsMap[pName] = { name: pName, quantity: 0, total: 0 };
+                productsMap[pName].quantity += item.quantity;
+                productsMap[pName].total += (item.price * item.quantity);
+            });
+
+            // Customer Ranking Aggregation
+            if (sale.customer?.name) {
+                const cName = sale.customer.name;
+                if (!customersMap[cName]) customersMap[cName] = { name: cName, total: 0, count: 0 };
+                customersMap[cName].total += saleNet;
+                customersMap[cName].count += 1;
+            }
         });
 
         // Add Transaction Payments (Debt payments from previous or current sales)
@@ -316,10 +337,12 @@ const Reports = () => {
             totalCost: proRataCost,
             ticketAverage: result.length > 0 ? total / result.length : 0,
             bySeller: Object.entries(sellersMap).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
-            byPayment: Object.entries(paymentsMap).filter(([name]) => name !== 'Vale Troca' && name !== 'Crediário (Fiado)' && name !== 'Outros').map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value)
+            byPayment: Object.entries(paymentsMap).filter(([name]) => name !== 'Vale Troca' && name !== 'Crediário (Fiado)' && name !== 'Outros').map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
+            byProduct: Object.values(productsMap).sort((a, b) => b.quantity - a.quantity),
+            byCustomer: Object.values(customersMap).sort((a, b) => b.total - a.total)
         });
 
-    }, [searchTerm, sellerFilter, startDate, endDate, sales]);
+    }, [searchTerm, sellerFilter, startDate, endDate, sales, transactions]);
 
     // Safe Permission Check with Try-Catch
     let hasVoucherPermission = false;
@@ -630,18 +653,80 @@ const Reports = () => {
                         </div>
                     </div>
 
-                    {/* Ranking Simples */}
+                    {/* Ranking Section */}
                     <div className="bg-[#111] border border-gray-800 p-4 rounded-sm">
-                        <div className="text-gray-400 text-xs font-bold uppercase mb-3 border-b border-gray-800 pb-2">Top Vendedores</div>
-                        <ul className="text-sm space-y-2">
-                            {reportData.bySeller.map((seller, idx) => (
-                                <li key={idx} className="flex justify-between text-gray-300">
-                                    <span>{idx + 1}. {seller.name}</span>
-                                    <span className="text-white font-mono">{formatCurrency(seller.value)}</span>
-                                </li>
-                            ))}
-                            {reportData.bySeller.length === 0 && <li className="text-gray-600 italic">Nenhum dado</li>}
-                        </ul>
+                        <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setRankingView('sellers')}
+                                    className={`text-xs font-bold uppercase transition-colors ${rankingView === 'sellers' ? 'text-primary border-b-2 border-primary pb-2 -mb-[9px]' : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    Vendedores
+                                </button>
+                                <button
+                                    onClick={() => setRankingView('products')}
+                                    className={`text-xs font-bold uppercase transition-colors ${rankingView === 'products' ? 'text-primary border-b-2 border-primary pb-2 -mb-[9px]' : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    Produtos
+                                </button>
+                                <button
+                                    onClick={() => setRankingView('customers')}
+                                    className={`text-xs font-bold uppercase transition-colors ${rankingView === 'customers' ? 'text-primary border-b-2 border-primary pb-2 -mb-[9px]' : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    Clientes
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                            <ul className="text-sm space-y-3">
+                                {rankingView === 'sellers' && (
+                                    <>
+                                        {reportData.bySeller.map((seller, idx) => (
+                                            <li key={idx} className="flex justify-between text-gray-300 items-center">
+                                                <span className="truncate pr-4"><span className="text-gray-600 mr-2">{idx + 1}.</span> {seller.name}</span>
+                                                <span className="text-white font-mono shrink-0">{formatCurrency(seller.value)}</span>
+                                            </li>
+                                        ))}
+                                        {reportData.bySeller.length === 0 && <li className="text-gray-600 italic">Nenhum dado</li>}
+                                    </>
+                                )}
+
+                                {rankingView === 'products' && (
+                                    <>
+                                        {reportData.byProduct.map((product, idx) => (
+                                            <li key={idx} className="flex justify-between text-gray-300 items-center">
+                                                <div className="truncate pr-4 flex flex-col">
+                                                    <span className="truncate"><span className="text-gray-600 mr-2">{idx + 1}.</span> {product.name}</span>
+                                                    <span className="text-[10px] text-gray-500 font-mono pl-6">{formatCurrency(product.total)} acumulado</span>
+                                                </div>
+                                                <span className={`shrink-0 font-bold ${idx < 3 ? 'text-primary' : 'text-gray-400'}`}>
+                                                    {product.quantity} <small className="font-normal opacity-60">un</small>
+                                                </span>
+                                            </li>
+                                        ))}
+                                        {reportData.byProduct.length === 0 && <li className="text-gray-600 italic">Nenhum dado</li>}
+                                    </>
+                                )}
+
+                                {rankingView === 'customers' && (
+                                    <>
+                                        {reportData.byCustomer.map((customer, idx) => (
+                                            <li key={idx} className="flex justify-between text-gray-300 items-center">
+                                                <div className="truncate pr-4 flex flex-col">
+                                                    <span className="truncate"><span className="text-gray-600 mr-2">{idx + 1}.</span> {customer.name}</span>
+                                                    <span className="text-[10px] text-gray-500 font-mono pl-6">{customer.count} compras</span>
+                                                </div>
+                                                <span className="text-white font-mono shrink-0">{formatCurrency(customer.total)}</span>
+                                            </li>
+                                        ))}
+                                        {reportData.byCustomer.length === 0 && <li className="text-gray-600 italic text-center py-4">
+                                            Vendas sem cliente identificado não somam aqui.
+                                        </li>}
+                                    </>
+                                )}
+                            </ul>
+                        </div>
                     </div>
 
                 </div>

@@ -65,7 +65,7 @@ const PinModal = ({ isOpen, onClose, onSuccess, title, requiredRole = 'MANAGER',
             }
 
             // 4. Check Roles & Permissions
-            const roles = { 'ADMIN': 3, 'MANAGER': 2, 'SELLER': 1 };
+            const roles = { 'ADMIN': 4, 'MANAGER': 3, 'CAIXA': 2, 'SELLER': 1, 'VENDEDOR': 1, 'GARCON': 1, 'CUSTOM': 0 };
             const userLevel = roles[user.role] || 0;
             const requiredLevel = roles[requiredRole] || 0;
 

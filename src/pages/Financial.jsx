@@ -12,7 +12,7 @@ const Financial = () => {
 
     // Filters
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [filterType, setFilterType] = useState('ALL'); // ALL, EXPENSE, REVENUE
+    const [filterType, setFilterType] = useState('EXPENSE'); // Fixed to EXPENSE as requested
 
     // Form State
     const [formData, setFormData] = useState({
@@ -155,28 +155,21 @@ const Financial = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="card border-l-4 border-green-500">
-                    <div className="flex items-center justify-between text-green-400 mb-2">
-                        <span>Receitas</span>
-                        <FaArrowUp />
-                    </div>
-                    <div className="text-2xl font-bold text-white">{formatCurrency(totalRevenue)}</div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="card border-l-4 border-red-500">
                     <div className="flex items-center justify-between text-red-400 mb-2">
-                        <span>Despesas</span>
+                        <span>Despesas Totais</span>
                         <FaArrowDown />
                     </div>
                     <div className="text-2xl font-bold text-white">{formatCurrency(totalExpense)}</div>
                 </div>
-                <div className={`card border-l-4 ${balance >= 0 ? 'border-blue-500' : 'border-red-500'}`}>
+                <div className="card border-l-4 border-blue-500">
                     <div className="flex items-center justify-between text-gray-400 mb-2">
-                        <span>Saldo Líquido</span>
+                        <span>Fluxo de Caixa</span>
                         <FaMoneyBillWave />
                     </div>
-                    <div className={`text-2xl font-bold ${balance >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
-                        {formatCurrency(balance)}
+                    <div className="text-2xl font-bold text-blue-400">
+                        {formatCurrency(totalExpense)}
                     </div>
                 </div>
             </div>
@@ -285,9 +278,9 @@ const Financial = () => {
                                         className="w-full bg-white border border-gray-300 rounded-lg p-3 text-black focus:outline-none focus:border-green-500 transition-colors"
                                         value={formData.type}
                                         onChange={e => setFormData({ ...formData, type: e.target.value })}
+                                        disabled
                                     >
                                         <option value="EXPENSE">Despesa (-)</option>
-                                        <option value="REVENUE">Receita (+)</option>
                                     </select>
                                 </div>
                                 <div>

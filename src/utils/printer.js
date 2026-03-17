@@ -41,27 +41,20 @@ const getStyles = (widthType) => {
 };
 
 const createIframe = (html) => {
-    // Abrir em nova aba para emular o comportamento de "PDF" e visualização
     const printWindow = window.open('', '_blank');
-
     if (!printWindow) {
         alert("Pop-up bloqueado! Por favor, autorize pop-ups para visualizar o comprovante.");
         return;
     }
-
     printWindow.document.open();
     printWindow.document.write(html);
     printWindow.document.close();
-
-    // Disparar a impressão após um pequeno delay para renderização
     setTimeout(() => {
         if (printWindow && !printWindow.closed) {
             printWindow.focus();
             printWindow.print();
         }
     }, 500);
-
-    // Não fechamos a janela automaticamente para que o usuário possa visualizar o cupom
 };
 
 export const printReceipt = (sale, storeData, settings) => {
@@ -70,6 +63,69 @@ export const printReceipt = (sale, storeData, settings) => {
     if (printerType === 'none') return;
 
     const styles = getStyles(printerType);
+
+    const isCrediario = ['crediario', 'fiado', 'credito_loja', 'crediário', 'CREDIARIO'].includes(
+        (sale.payment?.method || '').toUpperCase()
+    ) || (sale.payment?.payments || []).some(p => ['crediario', 'fiado', 'credito_loja', 'crediário', 'CREDIARIO'].includes((p.method || p.methodLabel || '').toUpperCase()));
+
+    const crediarioHtml = isCrediario ? `
+        <div style="border: 2px solid #000; padding: 6px; margin: 8px 0; text-align: center;">
+            <div style="font-size: 13px; font-weight: bold; letter-spacing: 1px;">⚠ CREDIÁRIO / FIADO ⚠</div>
+            <div style="font-size: 10px;">
+                ${(() => {
+                    const pay = (sale.payment?.payments || []).find(p => ['crediario', 'fiado', 'credito_loja'].includes((p.method || p.methodLabel || '').toLowerCase())) || sale.payment;
+                    const installments = parseInt(pay?.installments || sale.payment?.installments) || 1;
+                    const amount = parseFloat(pay?.amount || sale.total) || 0;
+                    return `${installments}x de R$ ${(amount / installments).toFixed(2)}`;
+                })()}
+            </div>
+        </div>
+        <div style="border-top: 1px dashed #000; padding: 6px 0; margin-top: 4px;">
+            <div style="font-weight: bold; font-size: 11px; margin-bottom: 3px;">DADOS DO CLIENTE</div>
+            <div style="font-size: 11px;">Nome: <b>${sale.customer?.name || sale.customerName || '-'}</b></div>
+            ${sale.customer?.cpf ? `<div style="font-size: 11px;">CPF: ${sale.customer.cpf}</div>` : ''}
+            ${sale.customer?.phone ? `<div style="font-size: 11px;">Tel: ${sale.customer.phone}</div>` : ''}
+            ${sale.customer?.address ? `<div style="font-size: 11px;">End: ${sale.customer.address}</div>` : ''}
+        </div>
+        <div style="border-top: 1px dashed #000; padding: 6px 0; margin-top: 4px;">
+            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px;">CRONOGRAMA DE PAGAMENTO</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #000;">
+                        <th style="text-align: left; padding-bottom: 3px;">Parcela</th>
+                        <th style="text-align: center; padding-bottom: 3px;">Vencimento</th>
+                        <th style="text-align: right; padding-bottom: 3px;">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${(() => {
+                        const pay = (sale.payment?.payments || []).find(p => ['crediario', 'fiado', 'credito_loja'].includes((p.method || p.methodLabel || '').toLowerCase())) || sale.payment;
+                        const numParcelas = parseInt(pay?.installments || sale.payment?.installments) || 1;
+                        const totalVal = parseFloat(pay?.amount || sale.total) || 0;
+                        const valorParcela = totalVal / numParcelas;
+                        const saleDate = sale.date ? new Date(sale.date) : new Date();
+                        let rows = '';
+                        for (let i = 1; i <= numParcelas; i++) {
+                            const dueDate = new Date(saleDate);
+                            dueDate.setMonth(dueDate.getMonth() + i);
+                            const dueDateStr = dueDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            rows += `
+                                <tr style="border-bottom: 1px dashed #ccc;">
+                                    <td style="padding: 3px 0;">${i}ª parcela</td>
+                                    <td style="text-align: center; padding: 3px 0;">${dueDateStr}</td>
+                                    <td style="text-align: right; padding: 3px 0; font-weight: bold;">R$ ${valorParcela.toFixed(2)}</td>
+                                </tr>`;
+                        }
+                        return rows;
+                    })()}
+                </tbody>
+            </table>
+        </div>
+        <div style="border-top: 1px dashed #000; margin-top: 12px; padding-top: 10px;">
+            <div style="font-size: 10px; margin-bottom: 30px;">Declaro que estou ciente das condições de pagamento acima.</div>
+            <div style="border-top: 1px solid #000; margin-top: 5px; padding-top: 3px; text-align: center; font-size: 10px;">Assinatura do Cliente</div>
+        </div>
+    ` : '';
 
     const receiptHtml = `
         <html>
@@ -87,14 +143,12 @@ export const printReceipt = (sale, storeData, settings) => {
                         ${store.phone ? 'Tel: ' + store.phone : ''}
                     </div>
                 </div>
-
                 <div class="info">
                     <div class="bold">CUPOM NÃO FISCAL</div>
                     Data: ${new Date(sale.date).toLocaleString().split(',').join(' - ')}<br/>
                     Venda: #${sale.id.slice(-8).toUpperCase()}<br/>
                     Vendedor: ${sale.sellerName || 'Operador'}
                 </div>
-
                 ${sale.customer ? `
                     <div class="divider"></div>
                     <div class="section-title">Cliente</div>
@@ -103,7 +157,6 @@ export const printReceipt = (sale, storeData, settings) => {
                         ${sale.customer.cpf ? 'CPF: ' + sale.customer.cpf : ''}
                     </div>
                 ` : ''}
-
                 <div class="divider"></div>
                 <table class="items">
                     <thead>
@@ -125,7 +178,6 @@ export const printReceipt = (sale, storeData, settings) => {
                         `).join('')}
                     </tbody>
                 </table>
-
                 <div class="totals">
                     <div class="total-row">
                         <span>SUBTOTAL</span>
@@ -142,7 +194,6 @@ export const printReceipt = (sale, storeData, settings) => {
                         <span>R$ ${(sale.total - (sale.payment?.discount || 0)).toFixed(2)}</span>
                     </div>
                 </div>
-
                 <div class="payment-info">
                     ${sale.payment?.payments ? `
                         <div style="font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 3px;">PAGAMENTOS:</div>
@@ -163,7 +214,7 @@ export const printReceipt = (sale, storeData, settings) => {
                         ${sale.payment?.installments > 1 ? `(${sale.payment.installments}x)` : ''}
                     `}
                 </div>
-
+                ${crediarioHtml}
                 <div class="footer">
                     ${store.receiptFooter || 'Obrigado pela preferência!'}<br/>
                     <br/>
@@ -173,35 +224,20 @@ export const printReceipt = (sale, storeData, settings) => {
         </body>
         </html>
     `;
-
     createIframe(receiptHtml);
 };
 
 export const printVoucher = (voucher, storeData, settings) => {
-    // Debug: Check if settings exist
-    if (!settings || Object.keys(settings).length === 0) {
-        // Fallback or Alert? Let's just alert for now to help user debug
-        // console.warn("Settings empty, defaulting to thermal_80");
-        // We can just proceed with defaults, but let's log it.
-    }
-
     const store = storeData || { name: 'Loja' };
-
-    // Explicitly check for 'none'
     const printerType = settings?.ticketPrinter || settings?.receiptPrinter || 'thermal_80';
-
     if (printerType === 'none') {
         alert("Impressão desativada nas Configurações.\nVá em Configurações > Impressora e selecione um modelo.");
         return;
     }
-
     const styles = getStyles(printerType);
-
-    // Safety for potential missing dates/values
     const val = parseFloat(voucher.value || 0).toFixed(2);
     const dateGen = voucher.createdAt ? new Date(voucher.createdAt).toLocaleDateString() : new Date().toLocaleDateString();
     const dateExp = voucher.expiresAt ? new Date(voucher.expiresAt).toLocaleDateString() : voucher.expiry ? new Date(voucher.expiry).toLocaleDateString() : '-';
-
     const html = `
         <html>
         <head>
@@ -213,13 +249,11 @@ export const printVoucher = (voucher, storeData, settings) => {
                 <div class="header">
                     <div class="title">${store.name || 'LOJA'}</div>
                 </div>
-                
                 <div class="voucher-box">
                     <div>VALE TROCA</div>
                     <div class="voucher-code">${voucher.code}</div>
                     <div class="voucher-val">R$ ${val}</div>
                 </div>
-
                 <div class="info" style="text-align: center;">
                     Gerado em: ${dateGen}<br/>
                     Válido até: ${dateExp}<br/>
@@ -227,7 +261,6 @@ export const printVoucher = (voucher, storeData, settings) => {
                     Apresente este código no caixa.<br/>
                     (Não perca este comprovante)
                 </div>
-
                 <div class="footer">
                     <small>Caramelo PDV</small>
                 </div>
@@ -235,7 +268,6 @@ export const printVoucher = (voucher, storeData, settings) => {
         </body>
         </html>
     `;
-
     createIframe(html);
 };
 
@@ -243,11 +275,9 @@ export const printDebtReceipt = (debt, inst, storeData, settings) => {
     const store = storeData || { name: 'Loja' };
     const printerType = settings?.receiptPrinter || 'thermal_80';
     if (printerType === 'none') return;
-
     const styles = getStyles(printerType);
     const val = parseFloat(inst.amount || 0).toFixed(2);
     const datePaid = inst.paidAt ? new Date(inst.paidAt).toLocaleString() : new Date().toLocaleString();
-
     const html = `
         <html>
         <head>
@@ -264,13 +294,11 @@ export const printDebtReceipt = (debt, inst, storeData, settings) => {
                         COMPROVANTE DE RECEBIMENTO
                     </div>
                 </div>
-                
                 <div class="info" style="margin-bottom: 5px;">
                     Data: ${datePaid}<br/>
                     Cliente: ${debt.customerName}<br/>
                     Vendedor: ${debt.sellerName || 'Loja'}
                 </div>
- 
                 <div style="border-top: 1px dashed #000; padding: 5px 0;">
                     <div style="display: flex; justify-content: space-between; font-size: 11px;">
                         <span>PARCELA:</span>
@@ -281,7 +309,6 @@ export const printDebtReceipt = (debt, inst, storeData, settings) => {
                         <span>${inst.paymentMethod || 'DINHEIRO'}</span>
                     </div>
                 </div>
-
                 <div class="totals">
                     <div class="total-row">
                         <span>VALOR PAGO</span>
@@ -297,7 +324,6 @@ export const printDebtReceipt = (debt, inst, storeData, settings) => {
                         </div>
                     `}
                 </div>
-
                 <div class="footer">
                     ${store.receiptFooter || 'Obrigado pela preferência!'}<br/>
                     <br/>
@@ -307,7 +333,6 @@ export const printDebtReceipt = (debt, inst, storeData, settings) => {
         </body>
         </html>
     `;
-
     createIframe(html);
 };
 
@@ -318,12 +343,10 @@ export const printComandaPreBill = (comanda, storeData, settings) => {
         alert("Impressão desativada nas Configurações.\nVá em Configurações > Impressora e selecione um modelo.");
         return;
     }
-
     const styles = getStyles(printerType);
     const subtotal = comanda.total || 0;
     const taxaServico = store.enableServiceTax ? (subtotal * 0.1) : 0;
     const totalGeral = subtotal + taxaServico;
-
     const html = `
         <html>
         <head>
@@ -339,12 +362,10 @@ export const printComandaPreBill = (comanda, storeData, settings) => {
                         NÃO É DOCUMENTO FISCAL
                     </div>
                 </div>
-                
                 <div class="info" style="margin-bottom: 10px; text-align: center; font-size: 14px; font-weight: bold;">
                     MESA / COMANDA: ${comanda.identificador.toUpperCase()}<br/>
                     <span style="font-size: 10px; font-weight: normal;">Data: ${new Date().toLocaleString()}</span>
                 </div>
-
                 <table class="items">
                     <thead>
                         <tr>
@@ -363,7 +384,6 @@ export const printComandaPreBill = (comanda, storeData, settings) => {
                         `).join('')}
                     </tbody>
                 </table>
-
                 <div class="totals">
                     <div style="font-size: 11px; display: flex; justify-content: space-between; margin-bottom: 2px;">
                         <span>Subtotal:</span>
@@ -380,7 +400,6 @@ export const printComandaPreBill = (comanda, storeData, settings) => {
                         <span>R$ ${totalGeral.toFixed(2)}</span>
                     </div>
                 </div>
-
                 <div class="footer">
                     Obrigado pela preferência!<br/>
                     <br/>
@@ -390,7 +409,6 @@ export const printComandaPreBill = (comanda, storeData, settings) => {
         </body>
         </html>
     `;
-
     createIframe(html);
 };
 
@@ -402,10 +420,8 @@ export const printDebtorReport = (debts, storeData) => {
         .debtor-name { font-weight: bold; }
         .debtor-amount { font-family: monospace; }
     `;
-
     const pendingDebts = debts.filter(d => d.remainingAmount > 0.01);
     const totalPending = pendingDebts.reduce((acc, d) => acc + d.remainingAmount, 0);
-
     const html = `
         <html>
         <head>
@@ -421,7 +437,6 @@ export const printDebtorReport = (debts, storeData) => {
                         Gerado em: ${new Date().toLocaleString()}
                     </div>
                 </div>
-
                 <div style="margin-bottom: 10px;">
                     ${pendingDebts.map(d => `
                         <div class="debtor-row">
@@ -430,14 +445,12 @@ export const printDebtorReport = (debts, storeData) => {
                         </div>
                     `).join('')}
                 </div>
-
                 <div class="totals" style="border-top: 2px solid #000; padding-top: 10px;">
                     <div class="total-row">
                         <span>TOTAL PENDENTE</span>
                         <span>R$ ${totalPending.toFixed(2)}</span>
                     </div>
                 </div>
-
                 <div class="footer">
                     <small>Caramelo PDV - Total de ${pendingDebts.length} devedores</small>
                 </div>
@@ -445,7 +458,6 @@ export const printDebtorReport = (debts, storeData) => {
         </body>
         </html>
     `;
-
     createIframe(html);
 };
 
@@ -458,9 +470,7 @@ export const printCustomerHistory = (customer, sales, storeData) => {
         .history-items { font-size: 9px; color: #555; font-style: italic; }
         .history-total { text-align: right; font-weight: bold; margin-top: 2px; }
     `;
-
     const totalSpent = sales.reduce((acc, s) => acc + (s.total || 0), 0);
-
     const html = `
         <html>
         <head>
@@ -477,7 +487,6 @@ export const printCustomerHistory = (customer, sales, storeData) => {
                         Gerado em: ${new Date().toLocaleString()}
                     </div>
                 </div>
-
                 <div style="margin-bottom: 15px;">
                     ${sales.map(s => `
                         <div class="history-row">
@@ -492,7 +501,6 @@ export const printCustomerHistory = (customer, sales, storeData) => {
                         </div>
                     `).join('')}
                 </div>
-
                 <div class="totals" style="border-top: 2px solid #000; padding-top: 10px;">
                     <div class="total-row">
                         <span>TOTAL GERAL GASTO</span>
@@ -502,7 +510,6 @@ export const printCustomerHistory = (customer, sales, storeData) => {
                         Total de ${sales.length} compras
                     </div>
                 </div>
-
                 <div class="footer">
                     <small>${store.name || 'Sistema Caramelo'}</small>
                 </div>
@@ -510,22 +517,20 @@ export const printCustomerHistory = (customer, sales, storeData) => {
         </body>
         </html>
     `;
-
     createIframe(html);
 };
 
 const translatePaymentMethod = (method) => {
     const map = {
-        'CREDIT': 'Crédito',
-        'DEBIT': 'Débito',
-        'CASH': 'Dinheiro',
-        'PIX': 'PIX',
-        'TICKET': 'Vale',
-        'CREDIARIO': 'Crediário',
+        'VOUCHER': 'Vale',
         'MONEY': 'Dinheiro',
+        'CASH': 'Dinheiro',
         'CREDIT_CARD': 'Crédito',
         'DEBIT_CARD': 'Débito',
-        'VOUCHER': 'Vale'
+        'PIX': 'PIX',
+        'crediário': 'Crediário',
+        'CREDIARIO': 'Crediário',
+        'TICKET': 'Vale'
     };
     return map[method] || method;
 };
