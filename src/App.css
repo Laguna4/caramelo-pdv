@@ -1,0 +1,5 @@
+/* CSS file intentionally cleared to remove default Vite restrictions. 
+   Styles are now managed in tailwind_app.css and component-specific files. */
+#root {
+  width: 100%;
+}
