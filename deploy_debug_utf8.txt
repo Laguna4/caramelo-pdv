@@ -1,0 +1,152 @@
+﻿[2026-04-08T23:17:12.237Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[2026-04-08T23:17:12.238Z] > authorizing via signed-in user (lucasluob999@gmail.com)
+[2026-04-08T23:17:12.238Z] [iam] checking project caramelo-pdv-sistema for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[2026-04-08T23:17:12.239Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:12.240Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:12.240Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema:testIamPermissions [none]
+[2026-04-08T23:17:12.241Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema:testIamPermissions  x-goog-user-project=caramelo-pdv-sistema
+[2026-04-08T23:17:12.241Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[2026-04-08T23:17:13.125Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema:testIamPermissions 200
+[2026-04-08T23:17:13.125Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[2026-04-08T23:17:13.125Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:13.125Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:13.125Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/caramelo-pdv-sistema/serviceAccounts/caramelo-pdv-sistema@appspot.gserviceaccount.com:testIamPermissions [none]
+[2026-04-08T23:17:13.126Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/caramelo-pdv-sistema/serviceAccounts/caramelo-pdv-sistema@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[2026-04-08T23:17:13.976Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/caramelo-pdv-sistema/serviceAccounts/caramelo-pdv-sistema@appspot.gserviceaccount.com:testIamPermissions 200
+[2026-04-08T23:17:13.976Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/caramelo-pdv-sistema/serviceAccounts/caramelo-pdv-sistema@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+
+=== Deploying to 'caramelo-pdv-sistema'...
+
+i  deploying functions 
+[2026-04-08T23:17:13.979Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:13.979Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:13.979Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema [none]
+[2026-04-08T23:17:14.187Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema 200
+[2026-04-08T23:17:14.187Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema {"projectNumber":"1006273931367","projectId":"caramelo-pdv-sistema","lifecycleState":"ACTIVE","name":"caramelo-pdv-sistema","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-02-08T22:58:21.128688Z"}
+i  functions: preparing codebase default for deployment 
+i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[2026-04-08T23:17:14.189Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:14.189Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:14.189Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/caramelo-pdv-sistema/adminSdkConfig [none]
+[2026-04-08T23:17:14.656Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/caramelo-pdv-sistema/adminSdkConfig 200
+[2026-04-08T23:17:14.657Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/caramelo-pdv-sistema/adminSdkConfig {"projectId":"caramelo-pdv-sistema","storageBucket":"caramelo-pdv-sistema.firebasestorage.app"}
+[2026-04-08T23:17:14.657Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:14.657Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:14.657Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/caramelo-pdv-sistema/configs [none]
+[2026-04-08T23:17:15.710Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/caramelo-pdv-sistema/configs 200
+[2026-04-08T23:17:15.710Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/caramelo-pdv-sistema/configs {}
+[2026-04-08T23:17:15.711Z] Validating nodejs source
+!  functions: Runtime Node.js 20 will be deprecated on 2026-04-30 and will be decommissioned on 2026-10-30, after which you will not be able to deploy without upgrading. Consider upgrading now to avoid disruption. See https://cloud.google.com/functions/docs/runtime-support for full details on the lifecycle policy 
+!  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+!  functions: Please note that there will be breaking changes when you upgrade. 
+[2026-04-08T23:17:16.624Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.1.0",
+    "firebase-functions": "^5.0.0"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[2026-04-08T23:17:16.624Z] Building nodejs source
+i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[2026-04-08T23:17:16.625Z] Could not find functions.yaml. Must use http discovery
+[2026-04-08T23:17:16.634Z] Found firebase-functions binary at 'C:\Users\Luob\.gemini\antigravity\scratch\toro-pdv\functions\node_modules\.bin\firebase-functions'
+Serving at port 8530
+
+[2026-04-08T23:17:17.266Z] Got response from /__/functions.yaml {"endpoints":{"proxyFocusNfe":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"proxyFocusNfe"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+i  extensions: ensuring required API firebaseextensions.googleapis.com is enabled... 
+[2026-04-08T23:17:21.299Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[2026-04-08T23:17:21.299Z] > authorizing via signed-in user (lucasluob999@gmail.com)
+[2026-04-08T23:17:21.299Z] [iam] checking project caramelo-pdv-sistema for permissions ["firebase.projects.get","firebaseextensions.instances.list"]
+[2026-04-08T23:17:21.299Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:21.300Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:21.300Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema:testIamPermissions [none]
+[2026-04-08T23:17:21.300Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema:testIamPermissions  x-goog-user-project=caramelo-pdv-sistema
+[2026-04-08T23:17:21.300Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[2026-04-08T23:17:22.170Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema:testIamPermissions 200
+[2026-04-08T23:17:22.170Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[2026-04-08T23:17:22.170Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:22.170Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:22.170Z] >>> [apiv2][query] GET https://firebaseextensions.googleapis.com/v1beta/projects/caramelo-pdv-sistema/instances pageSize=100&pageToken=
+[2026-04-08T23:17:23.225Z] <<< [apiv2][status] GET https://firebaseextensions.googleapis.com/v1beta/projects/caramelo-pdv-sistema/instances 200
+[2026-04-08T23:17:23.225Z] <<< [apiv2][body] GET https://firebaseextensions.googleapis.com/v1beta/projects/caramelo-pdv-sistema/instances {}
+i  functions: preparing functions directory for uploading... 
+i  functions: packaged C:\Users\Luob\.gemini\antigravity\scratch\toro-pdv\functions (67.74 KB) for uploading 
+[2026-04-08T23:17:23.245Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:23.245Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:23.245Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v1/projects/caramelo-pdv-sistema/locations/-/functions [none]
+[2026-04-08T23:17:24.354Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v1/projects/caramelo-pdv-sistema/locations/-/functions 200
+[2026-04-08T23:17:24.354Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v1/projects/caramelo-pdv-sistema/locations/-/functions {}
+[2026-04-08T23:17:24.354Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:24.354Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:24.354Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/caramelo-pdv-sistema/locations/-/functions filter=environment%3D%22GEN_2%22
+[2026-04-08T23:17:25.820Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/caramelo-pdv-sistema/locations/-/functions 200
+[2026-04-08T23:17:25.820Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/caramelo-pdv-sistema/locations/-/functions {"functions":[{"name":"projects/caramelo-pdv-sistema/locations/us-central1/functions/proxyFocusNfe","buildConfig":{"build":"projects/1006273931367/locations/us-central1/builds/6ad0d2c2-eb74-4a24-926a-70911be53cfa","runtime":"nodejs20","entryPoint":"proxyFocusNfe","source":{"storageSource":{"bucket":"gcf-v2-sources-1006273931367-us-central1","object":"proxyFocusNfe/function-source.zip","generation":"1775689504385390"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/caramelo-pdv-sistema/locations/us-central1/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-1006273931367-us-central1","object":"proxyFocusNfe/function-source.zip","generation":"1775689504385390"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/caramelo-pdv-sistema/serviceAccounts/1006273931367-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/caramelo-pdv-sistema/locations/us-central1/services/proxyfocusnfe","timeoutSeconds":60,"environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"caramelo-pdv-sistema\",\"storageBucket\":\"caramelo-pdv-sistema.firebasestorage.app\"}","GCLOUD_PROJECT":"caramelo-pdv-sistema","EVENTARC_CLOUD_EVENT_SOURCE":"projects/caramelo-pdv-sistema/locations/us-central1/services/proxyFocusNfe","FUNCTION_TARGET":"proxyFocusNfe","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","uri":"https://proxyfocusnfe-yavdkmo5da-uc.a.run.app","serviceAccountEmail":"1006273931367-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"revision":"proxyfocusnfe-00001-gig","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","updateTime":"2026-04-08T23:06:28.694130527Z","labels":{"firebase-functions-hash":"c0104da7cbd2ed32332856a7de9709e1b52ee867","deployment-tool":"cli-firebase","deployment-callable":"true"},"environment":"GEN_2","url":"https://us-central1-caramelo-pdv-sistema.cloudfunctions.net/proxyFocusNfe","createTime":"2026-04-08T23:05:05.061481284Z","satisfiesPzi":true}]}
+i  functions: ensuring required API run.googleapis.com is enabled... 
+i  functions: ensuring required API eventarc.googleapis.com is enabled... 
+i  functions: ensuring required API pubsub.googleapis.com is enabled... 
+i  functions: ensuring required API storage.googleapis.com is enabled... 
+i  functions: generating the service identity for pubsub.googleapis.com... 
+[2026-04-08T23:17:25.823Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:25.823Z] Checked if tokens are valid: true, expires at: 1775693042907
+i  functions: generating the service identity for eventarc.googleapis.com... 
+[2026-04-08T23:17:25.823Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:25.823Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:25.823Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1beta1/projects/1006273931367/services/pubsub.googleapis.com:generateServiceIdentity [none]
+[2026-04-08T23:17:25.823Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1beta1/projects/1006273931367/services/pubsub.googleapis.com:generateServiceIdentity  x-goog-user-project=1006273931367
+[2026-04-08T23:17:25.823Z] >>> [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/1006273931367/services/pubsub.googleapis.com:generateServiceIdentity {}
+[2026-04-08T23:17:25.825Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1beta1/projects/1006273931367/services/eventarc.googleapis.com:generateServiceIdentity [none]
+[2026-04-08T23:17:25.825Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1beta1/projects/1006273931367/services/eventarc.googleapis.com:generateServiceIdentity  x-goog-user-project=1006273931367
+[2026-04-08T23:17:25.825Z] >>> [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/1006273931367/services/eventarc.googleapis.com:generateServiceIdentity {}
+[2026-04-08T23:17:26.829Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1beta1/projects/1006273931367/services/pubsub.googleapis.com:generateServiceIdentity 200
+[2026-04-08T23:17:26.829Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/1006273931367/services/pubsub.googleapis.com:generateServiceIdentity {"name":"operations/finished.DONE_OPERATION","done":true,"response":{"@type":"type.googleapis.com/google.api.serviceusage.v1beta1.ServiceIdentity","email":"service-1006273931367@gcp-sa-pubsub.iam.gserviceaccount.com","uniqueId":"116737816016325157227"}}
+[2026-04-08T23:17:26.911Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1beta1/projects/1006273931367/services/eventarc.googleapis.com:generateServiceIdentity 200
+[2026-04-08T23:17:26.911Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/1006273931367/services/eventarc.googleapis.com:generateServiceIdentity {"name":"operations/finished.DONE_OPERATION","done":true,"response":{"@type":"type.googleapis.com/google.api.serviceusage.v1beta1.ServiceIdentity","email":"service-1006273931367@gcp-sa-eventarc.iam.gserviceaccount.com","uniqueId":"117597937919666146752"}}
+[2026-04-08T23:17:26.912Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:26.913Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:26.913Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema [none]
+[2026-04-08T23:17:27.128Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema 200
+[2026-04-08T23:17:27.128Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/caramelo-pdv-sistema {"projectNumber":"1006273931367","projectId":"caramelo-pdv-sistema","lifecycleState":"ACTIVE","name":"caramelo-pdv-sistema","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-02-08T22:58:21.128688Z"}
+[2026-04-08T23:17:27.128Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:27.128Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:27.128Z] >>> [apiv2][query] GET https://compute.googleapis.com/compute/v1/projects/1006273931367 [none]
+[2026-04-08T23:17:27.515Z] <<< [apiv2][status] GET https://compute.googleapis.com/compute/v1/projects/1006273931367 403
+[2026-04-08T23:17:27.515Z] <<< [apiv2][body] GET https://compute.googleapis.com/compute/v1/projects/1006273931367 {"error":{"code":403,"message":"Compute Engine API has not been used in project 1006273931367 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","errors":[{"message":"Compute Engine API has not been used in project 1006273931367 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","domain":"usageLimits","reason":"accessNotConfigured","extendedHelp":"https://console.developers.google.com"}],"status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"service":"compute.googleapis.com","consumer":"projects/1006273931367","containerInfo":"1006273931367","serviceTitle":"Compute Engine API","activationUrl":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Compute Engine API has not been used in project 1006273931367 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367"}]}]}}
+[2026-04-08T23:17:27.515Z] unable to look up default compute service account. Falling back to 1006273931367-compute@developer.gserviceaccount.com. Error: {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":403,"message":"Compute Engine API has not been used in project 1006273931367 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","errors":[{"message":"Compute Engine API has not been used in project 1006273931367 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","domain":"usageLimits","reason":"accessNotConfigured","extendedHelp":"https://console.developers.google.com"}],"status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"service":"compute.googleapis.com","consumer":"projects/1006273931367","containerInfo":"1006273931367","serviceTitle":"Compute Engine API","activationUrl":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Compute Engine API has not been used in project 1006273931367 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367"}]}]}},"response":{"statusCode":403}},"exit":1,"message":"Request to https://compute.googleapis.com/compute/v1/projects/1006273931367 had HTTP Error: 403, Compute Engine API has not been used in project 1006273931367 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=1006273931367 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","status":403}
+[2026-04-08T23:17:27.516Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:27.516Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:27.516Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/caramelo-pdv-sistema/billingInfo [none]
+[2026-04-08T23:17:28.841Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/caramelo-pdv-sistema/billingInfo 200
+[2026-04-08T23:17:28.841Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/caramelo-pdv-sistema/billingInfo {"name":"projects/caramelo-pdv-sistema/billingInfo","projectId":"caramelo-pdv-sistema","billingAccountName":"billingAccounts/012D27-193FDE-71C5AC","billingEnabled":true}
+i  functions: Skipping the deploy of unchanged functions. 
++  functions[proxyFocusNfe(us-central1)] Skipped (No changes detected) 
+[2026-04-08T23:17:28.843Z] Total Function Deployment time: 0
+[2026-04-08T23:17:28.843Z] 0 Functions Deployed
+[2026-04-08T23:17:28.843Z] 0 Functions Errored
+[2026-04-08T23:17:28.843Z] 0 Function Deployments Aborted
+[2026-04-08T23:17:28.843Z] Average Function Deployment time: NaN
+[2026-04-08T23:17:28.844Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:28.844Z] Checked if tokens are valid: true, expires at: 1775693042907
+[2026-04-08T23:17:28.844Z] >>> [apiv2][query] GET https://artifactregistry.googleapis.com/v1/projects/caramelo-pdv-sistema/locations/us-central1/repositories/gcf-artifacts [none]
+[2026-04-08T23:17:29.949Z] <<< [apiv2][status] GET https://artifactregistry.googleapis.com/v1/projects/caramelo-pdv-sistema/locations/us-central1/repositories/gcf-artifacts 200
+[2026-04-08T23:17:29.949Z] <<< [apiv2][body] GET https://artifactregistry.googleapis.com/v1/projects/caramelo-pdv-sistema/locations/us-central1/repositories/gcf-artifacts {"name":"projects/caramelo-pdv-sistema/locations/us-central1/repositories/gcf-artifacts","format":"DOCKER","description":"This repository is created and used by Cloud Functions for storing function docker images.","labels":{"goog-managed-by":"cloudfunctions"},"createTime":"2026-04-08T23:05:26.513858Z","updateTime":"2026-04-08T23:06:10.660868Z","mode":"STANDARD_REPOSITORY","sizeBytes":"87101793","vulnerabilityScanningConfig":{"lastEnableTime":"2026-04-08T23:05:05.280844768Z","enablementState":"SCANNING_DISABLED","enablementStateReason":"API containerscanning.googleapis.com is not enabled."},"satisfiesPzi":true,"registryUri":"us-central1-docker.pkg.dev/caramelo-pdv-sistema/gcf-artifacts"}
+!  functions: No cleanup policy detected for repositories in us-central1. This may result in a small monthly bill as container images accumulate over time. 
+
+Error: Functions successfully deployed but could not set up cleanup policy in location us-central1. Pass the --force option to automatically set up a cleanup policy or run 'firebase functions:artifacts:setpolicy' to manually set up a cleanup policy.

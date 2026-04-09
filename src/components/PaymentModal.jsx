@@ -10,6 +10,7 @@ const PAYMENT_METHODS = [
     { id: 'CREDIT_CARD', label: 'Cartão de Crédito', icon: <FaCreditCard /> },
     { id: 'DEBIT_CARD', label: 'Cartão de Débito', icon: <FaCreditCard /> },
     { id: 'PIX', label: 'PIX', icon: <FaQrcode /> },
+    { id: 'KIWIFI', label: 'Kiwifi', icon: <FaFileInvoiceDollar /> },
     { id: 'VOUCHER', label: 'Vale Troca', icon: <FaExchangeAlt /> },
     { id: 'CREDIARIO', label: 'Crediário (Fiado)', icon: <FaUserCircle /> }
 ];

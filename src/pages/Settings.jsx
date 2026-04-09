@@ -85,7 +85,8 @@ const Settings = () => {
         receiptFooter: 'Obrigado pela preferência!',
         adminPin: '', // New custom Admin PIN
         enableComandas: false,
-        enableServiceTax: false
+        enableServiceTax: false,
+        inscricaoEstadual: ''
     });
     const [isLoading, setIsLoading] = useState(false);
 
@@ -123,7 +124,8 @@ const Settings = () => {
                 enableServiceTax: current.enableServiceTax || false,
                 focusToken: current.focusToken || '',
                 nfeEnvironment: current.nfeEnvironment || '2', // 1=Production, 2=Homologation
-                nfeCrt: current.nfeCrt || '1' // 1=Simples Nacional, 3=Regime Normal
+                nfeCrt: current.nfeCrt || '1', // 1=Simples Nacional, 3=Regime Normal
+                inscricaoEstadual: current.inscricaoEstadual || ''
             });
         }
 
@@ -162,7 +164,8 @@ const Settings = () => {
                 enableServiceTax: storeData.enableServiceTax,
                 focusToken: storeData.focusToken,
                 nfeEnvironment: storeData.nfeEnvironment,
-                nfeCrt: storeData.nfeCrt
+                nfeCrt: storeData.nfeCrt,
+                inscricaoEstadual: storeData.inscricaoEstadual
             };
 
             // Validation: PIN numeric
@@ -437,6 +440,17 @@ const Settings = () => {
                                         value={storeData.focusToken || ''}
                                         onChange={handleChange}
                                         placeholder="Cole o token da sua conta Focus NFe"
+                                    />
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="input-label-premium">Inscrição Estadual (IE)</label>
+                                    <input
+                                        name="inscricaoEstadual"
+                                        className="input-premium"
+                                        value={storeData.inscricaoEstadual || ''}
+                                        onChange={handleChange}
+                                        placeholder="Apenas números (Ex: 0013894720058)"
                                     />
                                 </div>
 

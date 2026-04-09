@@ -56,6 +56,13 @@ const AdminDashboard = () => {
     // Site Settings Form States
     const [showSettingsModal, setShowSettingsModal] = useState(false);
     const [siteVideoUrl, setSiteVideoUrl] = useState('');
+    const [kiwifiBasic, setKiwifiBasic] = useState('');
+    const [kiwifiPro, setKiwifiPro] = useState('');
+    const [kiwifiPremium, setKiwifiPremium] = useState('');
+    const [kiwifiBasicAnnual, setKiwifiBasicAnnual] = useState('');
+    const [kiwifiProAnnual, setKiwifiProAnnual] = useState('');
+    const [kiwifiPremiumAnnual, setKiwifiPremiumAnnual] = useState('');
+    const [pixelHtml, setPixelHtml] = useState('');
 
     const currentUser = getCurrentUser();
     const isSuperAdmin = currentUser && currentUser.email === SUPER_ADMIN_EMAIL;
@@ -253,10 +260,15 @@ const AdminDashboard = () => {
 
     const openSettingsModal = async () => {
         const settings = await getSiteSettings();
-        if (settings && settings.landingVideoUrl) {
-            setSiteVideoUrl(settings.landingVideoUrl);
-        } else {
-            setSiteVideoUrl('');
+        if (settings) {
+            setSiteVideoUrl(settings.landingVideoUrl || '');
+            setKiwifiBasic(settings.kiwifiBasic || '');
+            setKiwifiPro(settings.kiwifiPro || '');
+            setKiwifiPremium(settings.kiwifiPremium || '');
+            setKiwifiBasicAnnual(settings.kiwifiBasicAnnual || '');
+            setKiwifiProAnnual(settings.kiwifiProAnnual || '');
+            setKiwifiPremiumAnnual(settings.kiwifiPremiumAnnual || '');
+            setPixelHtml(settings.pixelHtml || '');
         }
         setShowSettingsModal(true);
     };
@@ -269,7 +281,17 @@ const AdminDashboard = () => {
             else if (siteVideoUrl.includes('youtube.com/watch?v=')) videoId = siteVideoUrl.split('v=')[1].split('&')[0];
             else if (siteVideoUrl.includes('youtube.com/embed/')) videoId = siteVideoUrl.split('embed/')[1].split('?')[0];
 
-            await updateSiteSettings({ landingVideoUrl: siteVideoUrl, landingVideoId: videoId });
+            await updateSiteSettings({ 
+                landingVideoUrl: siteVideoUrl, 
+                landingVideoId: videoId,
+                kiwifiBasic,
+                kiwifiPro,
+                kiwifiPremium,
+                kiwifiBasicAnnual,
+                kiwifiProAnnual,
+                kiwifiPremiumAnnual,
+                pixelHtml
+            });
             alert("Configurações atualizadas!");
             setShowSettingsModal(false);
         } catch (error) {
@@ -653,6 +675,58 @@ const AdminDashboard = () => {
                     </div>
                 )
             }
+
+            {/* Site Settings Modal */}
+            {showSettingsModal && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="bg-[#1e293b] border border-gray-700 p-8 rounded-2xl w-full max-w-lg shadow-2xl relative">
+                        <button className="absolute top-4 right-4 text-gray-400 hover:text-white" onClick={() => setShowSettingsModal(false)}><FaClose size={20} /></button>
+                        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2"><FaCog className="text-blue-500" /> Configurações do Site</h2>
+                        <p className="text-gray-400 text-sm mb-6 text-center">Edite o vídeo da Landing Page e os links de checkout.</p>
+                        
+                        <form onSubmit={handleSaveSettings} className="space-y-6">
+                            <div className="space-y-4">
+                                <div className="bg-blue-500/5 p-4 rounded-xl border border-blue-500/20">
+                                    <h3 className="text-blue-400 text-[10px] font-black uppercase tracking-widest mb-3">Vídeo da Landing Page</h3>
+                                    <InputGroup label="URL do YouTube" value={siteVideoUrl} onChange={setSiteVideoUrl} placeholder="https://www.youtube.com/watch?v=..." />
+                                </div>
+
+                                <div className="bg-orange-500/5 p-4 rounded-xl border border-orange-500/20 space-y-4">
+                                    <h3 className="text-orange-400 text-[10px] font-black uppercase tracking-widest mb-1">Checkouts Kiwifi (Links de Pagamento)</h3>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-4">
+                                            <p className="text-[9px] font-bold text-gray-500 uppercase tracking-tighter border-b border-gray-800 pb-1">Mensal</p>
+                                            <InputGroup label="START (M)" value={kiwifiBasic} onChange={setKiwifiBasic} placeholder="Link mensal..." />
+                                            <InputGroup label="BUSINESS (M)" value={kiwifiPro} onChange={setKiwifiPro} placeholder="Link mensal..." />
+                                            <InputGroup label="EXPERT (M)" value={kiwifiPremium} onChange={setKiwifiPremium} placeholder="Link mensal..." />
+                                        </div>
+                                        <div className="space-y-4">
+                                            <p className="text-[9px] font-bold text-orange-500/50 uppercase tracking-tighter border-b border-gray-800 pb-1">Anual</p>
+                                            <InputGroup label="START (A)" value={kiwifiBasicAnnual} onChange={setKiwifiBasicAnnual} placeholder="Link anual..." />
+                                            <InputGroup label="BUSINESS (A)" value={kiwifiProAnnual} onChange={setKiwifiProAnnual} placeholder="Link anual..." />
+                                            <InputGroup label="EXPERT (A)" value={kiwifiPremiumAnnual} onChange={setKiwifiPremiumAnnual} placeholder="Link anual..." />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-purple-500/5 p-4 rounded-xl border border-purple-500/20">
+                                    <h3 className="text-purple-400 text-[10px] font-black uppercase tracking-widest mb-3">Trackings e Pixels (Global)</h3>
+                                    <label className="block text-[10px] font-black tracking-widest text-gray-500 mb-1 uppercase">HTML do Pixel (Head / Body)</label>
+                                    <textarea 
+                                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2.5 text-white outline-none focus:border-blue-500 transition-colors text-xs font-mono" 
+                                        rows="5"
+                                        placeholder="Cole aqui o código original do Pixel (Script/Noscript)..."
+                                        value={pixelHtml}
+                                        onChange={e => setPixelHtml(e.target.value)}
+                                    ></textarea>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all transform active:scale-95">SALVAR CONFIGURAÇÕES</button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

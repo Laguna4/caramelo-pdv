@@ -211,7 +211,7 @@ const Sales = () => {
 
     return (
         <div className="container-center p-4 md:p-8" style={{ height: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column' }}>
-            <div className="flex-between mb-4">
+            <div className={`flex-between mb-4 ${selectedSale ? 'hidden lg:flex' : 'flex'}`}>
                 <h1 style={{ fontSize: '1.8rem', background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>
                     <FaSearch className="mr-2" style={{ color: 'var(--primary)' }} /> Localizador de Vendas
                 </h1>
@@ -221,7 +221,7 @@ const Sales = () => {
             </div>
 
             {/* Filter Bar */}
-            <div className="card mb-4 p-4 grid grid-cols-1 md:flex gap-4 items-end" style={{ background: '#111', borderRadius: '12px', border: '1px solid #333' }}>
+            <div className={`card mb-4 p-4 grid grid-cols-1 md:flex gap-4 items-end ${selectedSale ? 'hidden lg:flex' : 'grid'}`} style={{ background: '#111', borderRadius: '12px', border: '1px solid #333' }}>
                 <div style={{ flex: 1 }}>
                     <label className="input-label-premium">Nº Venda / ID</label>
                     <input

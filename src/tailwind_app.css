@@ -470,3 +470,17 @@ input[type="month"] {
 .animate-bounce-slow {
   animation: bounce 3s infinite;
 }
+
+@keyframes scan {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(200%); }
+}
+
+@keyframes pulse-fast {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.animate-scan {
+  animation: scan 5s linear infinite;
+}

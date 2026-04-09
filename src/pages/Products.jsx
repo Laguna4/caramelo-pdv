@@ -698,16 +698,16 @@ const Products = () => {
                                     <td className="p-4 lg:p-6 text-right text-xl font-black text-white group-hover:text-green-400 transition-all font-mono">
                                         {formatCurrency(product.price)}
                                     </td>
-                                    <td className="p-4 lg:p-6 text-right text-gray-600 font-mono text-xs italic opacity-50">
+                                    <td className="p-4 lg:p-6 text-right text-white font-mono text-xl font-black">
                                         {formatCurrency(product.costPrice || 0)}
                                     </td>
                                     <td className="p-4 lg:p-6 text-right">
                                         <div className="flex flex-col items-end">
-                                            <span className="text-xs font-black text-green-500 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">
+                                            <span className="text-xs font-black text-white bg-green-500/80 px-2 py-0.5 rounded border border-green-500/20 mb-1">
                                                 +{product.markup}%
                                             </span>
-                                            <span className="text-[10px] text-gray-500 mt-1">
-                                                Lucro: {formatCurrency(product.price - (product.costPrice || 0))}
+                                            <span className="text-xl font-black text-green-500 font-mono">
+                                                {formatCurrency(product.price - (product.costPrice || 0))}
                                             </span>
                                         </div>
                                     </td>

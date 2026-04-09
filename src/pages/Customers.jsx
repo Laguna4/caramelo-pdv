@@ -300,7 +300,7 @@ const Customers = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-
+                    
                     <div className="flex flex-wrap bg-[#111] border border-gray-800 rounded-xl p-1 shrink-0 w-full md:w-auto">
                         <button
                             onClick={() => setActiveFilter('all')}
@@ -790,7 +790,7 @@ const Customers = () => {
 
                         <div className="flex gap-4 pt-6 border-t border-white/5 mt-4">
                             <button type="button" className="flex-1 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all border border-white/10" onClick={resetForm}>CANCELAR</button>
-                            <button type="submit" className="flex-[2] py-4 rounded-2xl bg-primary hover:bg-primary-dark text-black font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-primary/20 flex items-center justify-center gap-2">
+                            <button type="submit" className="flex-[2] py-4 rounded-2xl btn-primary font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-primary/20 flex items-center justify-center gap-2">
                                 <FaCheck /> {editingCustomer ? 'SALVAR ALTERAÇÕES' : 'CADASTRAR CLIENTE'}
                             </button>
                         </div>

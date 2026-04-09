@@ -17,6 +17,8 @@ export const PLANS = {
         id: 'basic',
         name: 'Básico',
         price: 79.90,
+        billingUrl: 'https://pay.kiwify.com.br/GYVVoKc',
+        billingUrlAnnual: 'https://pay.kiwify.com.br/9coU9qa',
         features: [
             '1 Usuário',
             '500 Produtos',
@@ -33,6 +35,8 @@ export const PLANS = {
         id: 'pro',
         name: 'Profissional',
         price: 179.90,
+        billingUrl: 'https://pay.kiwify.com.br/n0UjOY9',
+        billingUrlAnnual: 'https://pay.kiwify.com.br/N6L9YVg',
         features: [
             '3 Usuários',
             '2000 Produtos',
@@ -51,6 +55,8 @@ export const PLANS = {
         name: 'Premium',
         price: 249.90,
         annualPrice: 1850.00,
+        billingUrl: 'https://pay.kiwify.com.br/SmlUCqs',
+        billingUrlAnnual: 'https://pay.kiwify.com.br/VYfGZ2F',
         features: [
             'Usuários ilimitados',
             'Produtos ilimitados',
@@ -82,7 +88,8 @@ export const PAYMENT_METHODS = {
     CASH: 'Dinheiro',
     CREDIT: 'Cartão de Crédito',
     DEBIT: 'Cartão de Débito',
-    PIX: 'PIX'
+    PIX: 'PIX',
+    KIWIFI: 'Kiwifi'
 };
 
 // Subscription Status

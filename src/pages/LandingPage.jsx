@@ -2,55 +2,100 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaCheck, FaStore, FaMobileAlt, FaShieldAlt, FaChartLine, FaWhatsapp, FaArrowRight, FaBolt, FaTimes, FaCrown, FaPrint, FaUsers, FaPlay } from 'react-icons/fa';
 import logo from '../assets/caramelo-logo.png';
+// import dashboardThumb from '../assets/dashboard-thumb.png';
 import { loginDemoUser } from '../services/demoService';
 import { getSiteSettings } from '../services/dbService';
+import { PLANS } from '../config';
 import Testimonials from '../components/Testimonials';
 import FAQ from '../components/FAQ';
 
+const PixelInjector = ({ htmlString }) => {
+    useEffect(() => {
+        if (!htmlString) return;
+        try {
+            // Check if already injected to avoid duplicates
+            if (document.getElementById('injected-pixel')) return;
+            
+            const div = document.createElement('div');
+            div.id = 'injected-pixel';
+            div.innerHTML = '';
+            document.body.appendChild(div);
+            
+            const fragment = document.createRange().createContextualFragment(htmlString);
+            document.head.appendChild(fragment);
+        } catch(e) {
+            console.error("Error injecting pixel HTML", e);
+        }
+    }, [htmlString]);
+    return null;
+};
+
 const VideoPlaceholder = ({ theme = 'amber', videoId = 'K8s_1fkBtUI' }) => {
     const [isPlaying, setIsPlaying] = useState(false);
-    const shadowClass = theme === 'amber' ? 'rgba(245,158,11,0.5)' : 'rgba(59,130,246,0.5)';
+    const shadowColor = theme === 'amber' ? 'rgba(245,158,11,0.6)' : 'rgba(59,130,246,0.6)';
+    
     return (
-        <div className="group relative rounded-[40px] bg-gradient-to-b from-white/10 to-transparent p-[1px] shadow-2xl overflow-hidden">
+        <div className="group relative rounded-[40px] bg-gradient-to-br from-white/20 via-white/5 to-transparent p-[1px] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-700 hover:shadow-[0_0_120px_rgba(245,158,11,0.15)]">
             <div className="absolute top-0 left-0 w-full h-full bg-[#0f172a] rounded-[40px] -z-10"></div>
-            <div className={`absolute -top-20 -right-20 w-80 h-80 bg-${theme}-500/10 blur-[100px] rounded-full group-hover:bg-${theme}-500/20 transition-all duration-1000`}></div>
-            <div className="relative aspect-video rounded-[39px] overflow-hidden bg-slate-900 flex items-center justify-center">
+            
+            {/* Ambient Glow */}
+            <div className={`absolute -top-40 -right-40 w-96 h-96 bg-${theme}-500/20 blur-[120px] rounded-full group-hover:bg-${theme}-500/30 transition-all duration-1000 animate-pulse`}></div>
+            <div className={`absolute -bottom-40 -left-40 w-96 h-96 bg-orange-500/10 blur-[120px] rounded-full group-hover:bg-orange-500/20 transition-all duration-1000`}></div>
+
+            <div className="relative aspect-video rounded-[39px] overflow-hidden bg-slate-950 flex items-center justify-center border border-white/5">
                 {isPlaying ? (
                     <iframe
                         className="w-full h-full absolute inset-0 rounded-[39px]"
-                        src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
                         title="YouTube video player"
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowFullScreen
                     ></iframe>
                 ) : (
-                    <>
-                        <img
-                            src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
-                            alt="Capa do Vídeo"
-                            className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-500"
-                            onError={(e) => {
-                                if (e.target.src.includes('maxresdefault')) {
-                                    e.target.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-                                } else {
-                                    e.target.style.display = 'none';
-                                }
-                            }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-all duration-500 group-hover:bg-black/20 cursor-pointer" onClick={() => setIsPlaying(true)}></div>
-                        <div className="relative z-10 flex flex-col items-center gap-6 cursor-pointer transform group-hover:scale-110 transition-all duration-500" onClick={() => setIsPlaying(true)}>
-                            <div className={`w-24 h-24 rounded-full bg-${theme}-500 flex items-center justify-center text-slate-950 text-3xl shadow-[0_0_50px_${shadowClass}]`}>
-                                <div className="ml-1.5"><FaPlay /></div>
-                            </div>
-                            <span className="text-white font-bold tracking-[0.2em] text-xs uppercase opacity-80 group-hover:opacity-100 transition-all">Veja o sistema em ação</span>
+                    <div className="w-full h-full cursor-pointer overflow-hidden" onClick={() => setIsPlaying(true)}>
+                        {/* Background Placeholder */}
+                        <div className="absolute inset-0 bg-slate-900 flex items-center justify-center">
+                            <img src={logo} className="w-1/3 opacity-20 filter grayscale" alt="Caramelo logo placeholder" />
                         </div>
-                    </>
+                        
+                        {/* Glass Overlay */}
+                        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] group-hover:backdrop-blur-0 transition-all duration-700"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80"></div>
+                        
+                        {/* Centered Play Button Content */}
+                        <div className="relative z-10 flex flex-col items-center gap-6 transform group-hover:scale-110 transition-all duration-700">
+                            <div className="relative">
+                                {/* Pulse Effect Rings */}
+                                <div className={`absolute inset-0 rounded-full bg-${theme}-500/40 animate-ping opacity-75`}></div>
+                                <div className={`absolute inset-0 rounded-full bg-${theme}-500/20 animate-pulse scale-150`}></div>
+                                
+                                {/* Main Button Body */}
+                                <div className={`relative w-24 h-24 rounded-full bg-gradient-to-br from-white/90 to-${theme}-400 flex items-center justify-center text-slate-950 text-3xl shadow-[0_0_60px_${shadowColor}] ring-4 ring-white/10 group-hover:ring-white/30 transition-all`}>
+                                    <div className="ml-1.5 transform group-hover:rotate-12 transition-transform duration-500"><FaPlay /></div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-col items-center">
+                                <span className="text-white font-black tracking-[0.3em] text-xs uppercase shadow-sm">Veja o sistema em ação</span>
+                                <div className={`h-0.5 bg-${theme}-500 w-0 group-hover:w-full transition-all duration-700 mt-1`}></div>
+                            </div>
+                        </div>
+
+                        {/* Interactive Scan Line Effect */}
+                        <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden opacity-10">
+                            <div className="w-full h-1/2 bg-gradient-to-b from-transparent via-white to-transparent animate-[scan_8s_linear_infinite]"></div>
+                        </div>
+                    </div>
                 )}
             </div>
+            
             {!isPlaying && (
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10">
-                    <div className={`h-full bg-${theme}-500/50 w-0 group-hover:w-[40%] transition-all duration-[3000ms] ease-out`}></div>
+                <div className="absolute bottom-4 left-6 right-6">
+                   <div className="flex items-center gap-4 py-2 px-4 rounded-full bg-black/40 backdrop-blur-md border border-white/5">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Vídeo Tour • 2 min</span>
+                   </div>
                 </div>
             )}
         </div>
@@ -71,11 +116,13 @@ const LandingPage = () => {
     const navigate = useNavigate();
     const [isDemoLoading, setIsDemoLoading] = useState(false);
     const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'annual'
-    const [globalVideoId, setGlobalVideoId] = useState(null);
+    const [siteSettings, setSiteSettings] = useState(null);
+    const [globalVideoId, setGlobalVideoId] = useState('K8s_1fkBtUI');
 
     useEffect(() => {
         const fetchSettings = async () => {
             const settings = await getSiteSettings();
+            setSiteSettings(settings);
             if (settings && settings.landingVideoId) {
                 setGlobalVideoId(settings.landingVideoId);
             } else {
@@ -85,10 +132,20 @@ const LandingPage = () => {
         fetchSettings();
     }, []);
 
-    const getWhatsAppLink = (plan) => {
-        const period = billingCycle === 'annual' ? ' (Anual)' : ' (Mensal)';
-        const msg = `Olá, equipe Caramelo! Estava no site de vocês e tenho muito interesse em assinar o Plano ${plan}${period}. Como fazemos para iniciar?`;
-        return `https://wa.me/5531971301955?text=${encodeURIComponent(msg)}`;
+    const getCheckoutLink = (planId) => {
+        // planId is 'basic', 'pro' or 'premium'
+        const isAnnual = billingCycle === 'annual';
+        
+        if (siteSettings) {
+            const isAnnual = billingCycle === 'annual';
+            if (planId === 'basic') return (isAnnual ? siteSettings.kiwifiBasicAnnual : siteSettings.kiwifiBasic) || (isAnnual ? PLANS.BASIC.billingUrlAnnual : PLANS.BASIC.billingUrl);
+            if (planId === 'pro') return (isAnnual ? siteSettings.kiwifiProAnnual : siteSettings.kiwifiPro) || (isAnnual ? PLANS.PRO.billingUrlAnnual : PLANS.PRO.billingUrl);
+            if (planId === 'premium') return (isAnnual ? siteSettings.kiwifiPremiumAnnual : siteSettings.kiwifiPremium) || (isAnnual ? PLANS.PREMIUM.billingUrlAnnual : PLANS.PREMIUM.billingUrl);
+        }
+
+        // Fallback to config
+        const planKey = planId.toUpperCase();
+        return isAnnual ? PLANS[planKey]?.billingUrlAnnual : PLANS[planKey]?.billingUrl;
     };
 
     const handleDemoLogin = async () => {
@@ -108,6 +165,7 @@ const LandingPage = () => {
 
     return (
         <div className="font-sans text-gray-100 bg-slate-900 min-h-screen">
+            <PixelInjector htmlString={siteSettings?.pixelHtml} />
             {/* Navigation */}
             <nav className="fixed w-full z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -345,7 +403,7 @@ const LandingPage = () => {
                                 </div>
                             </div>
 
-                            <a href={getWhatsAppLink('Start')} target="_blank" rel="noopener noreferrer" className="mt-10 w-full py-4 rounded-2xl border border-white/10 text-white font-bold hover:bg-slate-800 transition-all block text-center">Começar Agora</a>
+                            <a href={getCheckoutLink('basic')} target="_blank" rel="noopener noreferrer" className="mt-10 w-full py-4 rounded-2xl border border-white/10 text-white font-bold hover:bg-slate-800 transition-all block text-center">Assinar Agora</a>
                         </div>
 
                         {/* Business Plan (Highlighted) */}
@@ -390,7 +448,7 @@ const LandingPage = () => {
                                     </div>
                                 </div>
 
-                                <a href={getWhatsAppLink('Business')} target="_blank" rel="noopener noreferrer" className="mt-10 w-full py-5 rounded-2xl bg-amber-500 text-slate-900 font-black hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/20 block text-center">Começar Agora</a>
+                                <a href={getCheckoutLink('pro')} target="_blank" rel="noopener noreferrer" className="mt-10 w-full py-5 rounded-2xl bg-amber-500 text-slate-900 font-black hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/20 block text-center">Assinar Agora</a>
                             </div>
                         </div>
 
@@ -429,7 +487,7 @@ const LandingPage = () => {
                                 </div>
                             </div>
 
-                            <a href={getWhatsAppLink('Expert')} target="_blank" rel="noopener noreferrer" className="mt-10 w-full py-4 rounded-2xl border border-white/10 text-white font-bold hover:bg-slate-800 transition-all text-sm uppercase tracking-widest block text-center">Falar com Consultor</a>
+                            <a href={getCheckoutLink('premium')} target="_blank" rel="noopener noreferrer" className="mt-10 w-full py-4 rounded-2xl border border-white/10 text-white font-bold hover:bg-slate-800 transition-all text-sm uppercase tracking-widest block text-center">Assinar Agora</a>
                         </div>
                     </div>
                 </div>

@@ -441,29 +441,35 @@ const Reports = () => {
                         ))}
                     </select>
                 </div>
-                <div className="grid grid-cols-2 gap-3 md:col-span-2">
-                    <div>
-                        <label className="text-[10px] uppercase font-black text-gray-500 mb-1.5 block">Data Inicial</label>
-                        <input
-                            type="date"
-                            className="w-full bg-[#111] border border-gray-800 rounded-xl p-3 text-white text-sm focus:border-primary outline-none font-bold"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                        />
+                    <div className="relative group">
+                        <label className="text-[10px] uppercase font-black text-primary mb-1.5 block flex items-center gap-2">
+                            Data Inicial
+                        </label>
+                        <div className="relative">
+                            <input
+                                type="date"
+                                className="w-full bg-[#1a1a1a] border-2 border-primary/60 rounded-xl p-3 text-white text-sm focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none font-bold transition-all group-hover:border-primary [color-scheme:dark]"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <label className="text-[10px] uppercase font-black text-gray-500 mb-1.5 block">Data Final</label>
-                        <input
-                            type="date"
-                            className="w-full bg-[#111] border border-gray-800 rounded-xl p-3 text-white text-sm focus:border-primary outline-none font-bold"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                        />
+                    <div className="relative group">
+                        <label className="text-[10px] uppercase font-black text-primary mb-1.5 block flex items-center gap-2">
+                            Data Final
+                        </label>
+                        <div className="relative">
+                            <input
+                                type="date"
+                                className="w-full bg-[#1a1a1a] border-2 border-primary/60 rounded-xl p-3 text-white text-sm focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none font-bold transition-all group-hover:border-primary [color-scheme:dark]"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                            />
+                        </div>
                     </div>
-                </div>
                 <div className="grid grid-cols-2 gap-2 mt-4 md:mt-0">
                     <button
-                        className="btn bg-gray-900 border border-gray-800 py-3 text-[10px] font-black uppercase hover:bg-gray-800 rounded-xl transition-all"
+                        className="btn bg-white/5 border border-white/10 py-3 text-[10px] font-black uppercase hover:bg-white/10 hover:border-white/20 rounded-xl transition-all text-gray-300"
                         onClick={() => { setSearchTerm(''); setSellerFilter(''); setStartDate(''); setEndDate(''); }}
                     >
                         Limpar

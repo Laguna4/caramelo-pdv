@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCashRegister, FaBox, FaBoxOpen, FaChartLine, FaCog, FaSignOutAlt, FaSearch, FaUsers, FaUserTie, FaMoneyBillWave, FaClipboardList, FaExclamationTriangle, FaHistory, FaUtensils, FaFire, FaPrint } from 'react-icons/fa';
+import { FaCashRegister, FaBox, FaBoxOpen, FaChartLine, FaCog, FaSignOutAlt, FaSearch, FaUsers, FaUserTie, FaMoneyBillWave, FaClipboardList, FaExclamationTriangle, FaHistory, FaUtensils, FaFire, FaPrint, FaCrown } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { logout as storageLogout, getCurrentUser, exportBackup } from '../utils/storage';
 import { logout as authLogout } from '../services/authService';
-import { getProducts, getCustomers, getSellers, getStore, getOpenCashRegister } from '../services/dbService';
+import { getProducts, getCustomers, getSellers, getStore, getOpenCashRegister, getSiteSettings } from '../services/dbService';
+import { PLANS } from '../config';
 import { printComandaPreBill } from '../utils/printer';
 import { PLAN_LIMITS } from '../utils/plans';
 import logo from '../assets/caramelo-logo.png';
@@ -21,6 +22,7 @@ const Dashboard = ({ store }) => {
     });
     const [cashRegister, setCashRegister] = useState(null);
     const [pendingComandas, setPendingComandas] = useState([]);
+    const [siteSettings, setSiteSettings] = useState(null);
 
     const activePlan = liveStore?.plan || store?.plan || 'BASIC';
     // Fix: Handle cases where plan is an object (from config) or string
@@ -46,6 +48,9 @@ const Dashboard = ({ store }) => {
                         sellers: sellers.length
                     });
                     setCashRegister(register);
+
+                    const settings = await getSiteSettings();
+                    setSiteSettings(settings);
                 } catch (error) {
                     console.error("Error fetching dashboard data:", error);
                 }
@@ -160,9 +165,41 @@ const Dashboard = ({ store }) => {
                             <h2 className="text-xl font-bold text-white">Meu Plano: <span className="text-red-500">{currentPlanName}</span></h2>
                             <p className="text-gray-500 text-sm">Acompanhe seus limites de uso</p>
                         </div>
-                        <button onClick={() => navigate('/settings')} className="text-sm text-red-500 hover:text-red-400 font-bold transition-colors">
-                            Gerenciar Plano &rarr;
-                        </button>
+                        <div className="flex flex-col sm:flex-row gap-3 items-center">
+                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                                <a 
+                                    href={
+                                        siteSettings ? (
+                                            planString.toUpperCase() === 'BASIC' ? siteSettings.kiwifiBasic :
+                                            planString.toUpperCase() === 'PRO' ? siteSettings.kiwifiPro :
+                                            siteSettings.kiwifiPremium
+                                        ) : PLANS[planString.toUpperCase()]?.billingUrl
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="bg-transparent hover:bg-white/5 text-gray-300 text-[10px] font-black px-4 py-2 rounded-lg transition-all flex items-center gap-2 whitespace-nowrap"
+                                >
+                                    MENSAL
+                                </a>
+                                <a 
+                                    href={
+                                        siteSettings ? (
+                                            planString.toUpperCase() === 'BASIC' ? siteSettings.kiwifiBasicAnnual :
+                                            planString.toUpperCase() === 'PRO' ? siteSettings.kiwifiProAnnual :
+                                            siteSettings.kiwifiPremiumAnnual
+                                        ) : PLANS[planString.toUpperCase()]?.billingUrlAnnual
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="bg-red-600 hover:bg-red-700 text-white text-[10px] font-black px-4 py-2 rounded-lg transition-all shadow-lg flex items-center gap-2 whitespace-nowrap"
+                                >
+                                    <FaCrown className="text-yellow-400" /> RENOVAR ANUAL
+                                </a>
+                            </div>
+                            <button onClick={() => navigate('/settings')} className="text-xs text-gray-500 hover:text-white transition-colors uppercase font-bold tracking-widest pl-2">
+                                AJUSTES &rarr;
+                            </button>
+                        </div>
                     </div>
 
                     {/* Pending Comandas Alert Block */}
