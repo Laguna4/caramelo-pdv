@@ -128,7 +128,13 @@ const mapSaleToFocusPayload = (store, sale) => {
     const payload = {
         cnpj_emitente: cleanDocument(store.cnpj),
         inscricao_estadual_emitente: cleanDocument(store.inscricaoEstadual).padStart(13, '0'),
-        natureza_operacao: sale.naturezaOperacao || 'Venda de mercadorias',
+        logradouro_emitente: store.logradouro || '',
+        numero_emitente: store.numero || 'SN',
+        bairro_emitente: store.bairro || '',
+        municipio_emitente: store.cidade || '',
+        uf_emitente: store.uf || '',
+        cep_emitente: cleanDocument(store.cep || ''),
+        natureza_operacao: sale.naturezaOperacao || store.naturezaOperacao || 'Venda de mercadorias',
         data_emissao: new Date().toISOString(),
         tipo_documento: 1,
         presenca_comprador: 1,
@@ -163,11 +169,12 @@ const mapSaleToFocusPayload = (store, sale) => {
     }
 
     // Customer/Destinatário Info
-    payload.nome_destinatario = customerName;
     if (customerCpfCnpj.length === 11) {
+        payload.nome_destinatario = customerName;
         payload.cpf_destinatario = customerCpfCnpj;
         payload.indicador_inscricao_estadual_destinatario = '9'; // Non-taxpayer
     } else if (customerCpfCnpj.length === 14) {
+        payload.nome_destinatario = customerName;
         payload.cnpj_destinatario = customerCpfCnpj;
         payload.indicador_inscricao_estadual_destinatario = '9'; // Change to 1 if you have the IE
     }
@@ -175,11 +182,11 @@ const mapSaleToFocusPayload = (store, sale) => {
     // Add structured address for NFe (Model 55) - Mandatory fields
     const cust = sale.customer || {};
     if (cust.cep || isModel55 || customerCpfCnpj) {
-        payload.logradouro_destinatario = (cust.address || cust.logradouro || 'RUA NAO INFORMADA').split(',')[0];
+        payload.logradouro_destinatario = (cust.logradouro || cust.address || 'RUA NAO INFORMADA').split(',')[0];
         payload.numero_destinatario = cust.numero || 'SN';
         payload.bairro_destinatario = cust.bairro || 'CENTRO';
-        payload.municipio_destinatario = cust.cidade || 'SAO PAULO';
-        payload.uf_destinatario = cust.uf || 'SP';
+        payload.municipio_destinatario = (cust.cidade || cust.municipio || 'SAO PAULO').toUpperCase();
+        payload.uf_destinatario = (cust.uf || 'SP').toUpperCase();
         payload.cep_destinatario = cleanDocument(cust.cep || '00000000');
     }
 
@@ -191,6 +198,9 @@ export const emitNfce = async (storeId, sale) => {
         const store = await getStore(storeId);
         if (!store) return { success: false, error: "Loja não encontrada." };
         if (!store.focusToken) return { success: false, error: "Token da Focus NFe não configurado. Acesse as Configurações." };
+
+        const internalRef = sale.id;
+        const payload = mapSaleToFocusPayload(store, sale);
 
         const proxyFocusNfe = httpsCallable(functions, 'proxyFocusNfe');
         const response = await proxyFocusNfe({
@@ -290,7 +300,8 @@ export const consultNfce = async (storeId, reference) => {
             status: data.status,
             xml: data.caminho_xml_nota_fiscal,
             pdf: data.caminho_danfe,
-            mensagem_sefaz: data.mensagem_sefaz
+            mensagem_sefaz: data.mensagem_sefaz,
+            modelo: data.modelo
         };
     } catch (err) {
         console.error("NFE Consult Error", err);

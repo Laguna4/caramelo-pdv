@@ -40,8 +40,8 @@ const getStyles = (widthType) => {
     return styles;
 };
 
-const createIframe = (html) => {
-    const printWindow = window.open('', '_blank');
+const createIframe = (html, preOpenedWindow = null) => {
+    const printWindow = preOpenedWindow || window.open('', '_blank');
     if (!printWindow) {
         alert("Pop-up bloqueado! Por favor, autorize pop-ups para visualizar o comprovante.");
         return;
@@ -57,7 +57,7 @@ const createIframe = (html) => {
     }, 500);
 };
 
-export const printReceipt = (sale, storeData, settings) => {
+export const printReceipt = (sale, storeData, settings, preOpenedWindow = null) => {
     const store = storeData || { name: 'Loja' };
     const printerType = settings?.receiptPrinter || 'thermal_80';
     if (printerType === 'none') return;
@@ -224,7 +224,7 @@ export const printReceipt = (sale, storeData, settings) => {
         </body>
         </html>
     `;
-    createIframe(receiptHtml);
+    createIframe(receiptHtml, preOpenedWindow);
 };
 
 export const printVoucher = (voucher, storeData, settings) => {

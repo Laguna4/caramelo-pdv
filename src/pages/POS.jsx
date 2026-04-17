@@ -8,7 +8,7 @@ import PinModal from '../components/PinModal';
 import ProductSearchModal from '../components/ProductSearchModal';
 import CashManagementModal from '../components/CashManagementModal';
 import TutorialModal from '../components/TutorialModal';
-import { getProductByBarcode, addSale, getProducts, reduceStock, getSellers, getOpenCashRegister, getCustomers, addDebt, saveBudget, deleteBudget, finishSaleAtomic, updateBudgetStatus } from '../services/dbService';
+import { getProductByBarcode, addSale, getProducts, reduceStock, getSellers, getOpenCashRegister, getCustomers, addDebt, saveBudget, deleteBudget, finishSaleAtomic, updateBudgetStatus, updateSale } from '../services/dbService';
 import { emitAndWaitNfce, emitNfe55 } from '../services/nfeService';
 import { updateComanda } from '../services/comandaService';
 import CustomerSelectionModal from '../components/CustomerSelectionModal';
@@ -406,11 +406,20 @@ const POS = () => {
             }
         }
 
+        // Open print window NOW (synchronously, before any async calls)
+        // so the browser does not block it as a popup.
+        const printerSettings = JSON.parse(localStorage.getItem('caramelo_printer_settings') || '{}');
+        let preOpenedPrintWindow = null;
+        if (printerSettings.autoPrint !== false && printerSettings.receiptPrinter !== 'none') {
+            preOpenedPrintWindow = window.open('', '_blank');
+        }
+
         try {
             // Atomic operation: Sale + Stock + Debts
             const res = await finishSaleAtomic(currentStore.id, sale, debtsToCreate);
 
             if (!res.success) {
+                if (preOpenedPrintWindow) preOpenedPrintWindow.close();
                 throw new Error(res.error || "Erro ao salvar venda");
             }
 
@@ -440,6 +449,13 @@ const POS = () => {
                 if (nfceRes.success) {
                     alert(`NFC-e Emitida com Sucesso!\nStatus: Autorizado`);
                     if (nfceRes.pdf) window.open(`https://api.focusnfe.com.br${nfceRes.pdf}`, '_blank');
+                    
+                    // Persist status
+                    await updateSale(sale.id, {
+                        invoice_status: 'autorizado',
+                        invoice_model: '65',
+                        invoice_date: new Date().toISOString()
+                    });
                 } else {
                     alert(`Falha ao emitir NFC-e:\n${nfceRes.error}`);
                 }
@@ -447,14 +463,23 @@ const POS = () => {
                 const nfeRes = await emitNfe55(currentStore.id, sale);
                 if (nfeRes.success) {
                     alert(`NF-e (Modelo 55) enviada com sucesso!\nStatus: Processando`);
+                    
+                    // Persist status
+                    await updateSale(sale.id, {
+                        invoice_status: 'processando_autorizacao',
+                        invoice_model: '55',
+                        invoice_date: new Date().toISOString()
+                    });
                 } else {
                     alert(`Falha ao emitir NF-e (Modelo 55):\n${nfeRes.error}`);
                 }
             }
 
-            const printerSettings = JSON.parse(localStorage.getItem('caramelo_printer_settings') || '{}');
+            // Print receipt using the pre-opened window (bypasses popup blocker)
             if (printerSettings.autoPrint !== false) {
-                printReceipt(sale, currentStore, printerSettings);
+                printReceipt(sale, currentStore, printerSettings, preOpenedPrintWindow);
+            } else if (preOpenedPrintWindow) {
+                preOpenedPrintWindow.close();
             }
 
             setCartItems([]);
@@ -464,6 +489,7 @@ const POS = () => {
             setFinalizingSeller(null);
             setTimeout(() => barcodeInputRef.current?.focus(), 100);
         } catch (err) {
+            if (preOpenedPrintWindow) preOpenedPrintWindow.close();
             console.error("Erro ao finalizar venda:", err);
             alert("Erro ao salvar venda. Verifique sua conexão.");
         } finally {

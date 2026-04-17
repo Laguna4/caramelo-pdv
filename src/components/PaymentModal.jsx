@@ -10,7 +10,6 @@ const PAYMENT_METHODS = [
     { id: 'CREDIT_CARD', label: 'Cartão de Crédito', icon: <FaCreditCard /> },
     { id: 'DEBIT_CARD', label: 'Cartão de Débito', icon: <FaCreditCard /> },
     { id: 'PIX', label: 'PIX', icon: <FaQrcode /> },
-    { id: 'KIWIFI', label: 'Kiwifi', icon: <FaFileInvoiceDollar /> },
     { id: 'VOUCHER', label: 'Vale Troca', icon: <FaExchangeAlt /> },
     { id: 'CREDIARIO', label: 'Crediário (Fiado)', icon: <FaUserCircle /> }
 ];
@@ -30,6 +29,8 @@ const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj,
 
     // Fiscal State
     const [fiscalType, setFiscalType] = useState('NONE'); // 'NONE', 'NFCE', 'NFE55'
+    const [wantsCpf, setWantsCpf] = useState(false);
+    const [cpfCnpj, setCpfCnpj] = useState('');
 
     // Crediário State
     const [installments, setInstallments] = useState(1);
@@ -161,7 +162,8 @@ const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj,
             observation,
             date: new Date().toISOString(),
             customer: customer,
-            fiscalType // 'NONE', 'NFCE', 'NFE55'
+            fiscalType, // 'NONE', 'NFCE', 'NFE55'
+            cpfCnpj: wantsCpf ? cpfCnpj : null
         };
         onComplete(paymentInfo);
     };
@@ -565,17 +567,50 @@ const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj,
 
                         <div className="flex-[1.5] flex flex-col gap-2">
                             {/* Fiscal Selection */}
-                            <div className="bg-black/40 border border-white/5 px-4 py-3 rounded-2xl flex items-center gap-3">
-                                <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest shrink-0">Documento:</div>
-                                <div className="flex gap-2 flex-1">
-                                    {[{ id: 'NONE', label: 'Nenhum' }, { id: 'NFCE', label: 'NFC-e' }, { id: 'NFE55', label: 'NF-e' }].map(ft => (
-                                        <button key={ft.id} type="button" onClick={() => setFiscalType(ft.id)}
-                                            className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all border-2
-                                            ${fiscalType === ft.id ? 'border-gray-500 bg-gray-500/10 text-white' : 'border-white/5 text-gray-600 hover:text-gray-400'}`}>
-                                            {ft.label}
-                                        </button>
-                                    ))}
+                            <div className="bg-black/40 border border-white/5 px-4 py-3 rounded-2xl flex flex-col gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest shrink-0">Documento:</div>
+                                    <div className="flex gap-2 flex-1">
+                                        {[{ id: 'NONE', label: 'Nenhum' }, { id: 'NFCE', label: 'NFC-e' }, { id: 'NFE55', label: 'NF-e' }].map(ft => (
+                                            <button key={ft.id} type="button" onClick={() => {
+                                                setFiscalType(ft.id);
+                                                if (ft.id === 'NFCE' && !customer) setWantsCpf(false);
+                                            }}
+                                                className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all border-2
+                                                ${fiscalType === ft.id ? 'border-primary bg-primary/10 text-white' : 'border-white/5 text-gray-600 hover:text-gray-400'}`}>
+                                                {ft.label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
+
+                                {/* CPF na Nota Logic (Only for NFCE and no customer selected) */}
+                                {fiscalType === 'NFCE' && !customer && (
+                                    <div className="space-y-3 animate-fadeIn">
+                                        <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/5">
+                                            <button
+                                                type="button"
+                                                className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${!wantsCpf ? 'bg-gray-700 text-white' : 'text-gray-500'}`}
+                                                onClick={() => setWantsCpf(false)}
+                                            >Sem CPF</button>
+                                            <button
+                                                type="button"
+                                                className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${wantsCpf ? 'bg-green-600 text-white' : 'text-gray-500'}`}
+                                                onClick={() => setWantsCpf(true)}
+                                            >CPF na Nota</button>
+                                        </div>
+
+                                        {wantsCpf && (
+                                            <input
+                                                className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-white font-black text-center focus:border-green-500 outline-none transition-all placeholder:text-gray-700"
+                                                placeholder="Digite o CPF ou CNPJ..."
+                                                value={cpfCnpj}
+                                                onChange={(e) => setCpfCnpj(e.target.value.replace(/\D/g, ''))}
+                                                maxLength={14}
+                                            />
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             <button
@@ -583,7 +618,7 @@ const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj,
                                 className="w-full py-4 rounded-2xl text-base font-black shadow-2xl transition-all flex items-center justify-center gap-2
                                 disabled:opacity-10 disabled:grayscale enabled:bg-gradient-to-r enabled:from-green-600 enabled:to-green-500 enabled:hover:scale-[1.01] enabled:active:scale-[0.98] uppercase tracking-tighter"
                                 onClick={handleFinalize}
-                                disabled={remaining > 0.01 || payments.length === 0 || isSavingBudget}
+                                disabled={remaining > 0.01 || payments.length === 0 || isSavingBudget || (wantsCpf && cpfCnpj.length < 11)}
                             >
                                 <FaCheck /> FINALIZAR VENDA (ENTER)
                             </button>

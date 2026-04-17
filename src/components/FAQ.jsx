@@ -16,7 +16,7 @@ const faqs = [
     },
     {
         question: "Emite Nota Fiscal (NFCe/NFe)?",
-        answer: "Essa funcionalidade está em desenvolvimento e será lançada em breve como um plano separado para quem deseja emitir Notas Fiscais diretamente pelo sistema."
+        answer: "Sim! O Caramelo PDV já possui integração com emissão de NF-e e NFC-e através da Focus NFe, plataforma homologada pela SEFAZ. Para emitir notas é necessário assinar também o plano Retail da Focus NFe (a partir de R$ 59,90/mês — separado do plano do Caramelo PDV). Nossa equipe auxilia na configuração completa da integração."
     },
     {
         question: "Como funciona o suporte?",

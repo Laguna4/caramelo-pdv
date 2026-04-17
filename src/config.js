@@ -88,8 +88,7 @@ export const PAYMENT_METHODS = {
     CASH: 'Dinheiro',
     CREDIT: 'Cartão de Crédito',
     DEBIT: 'Cartão de Débito',
-    PIX: 'PIX',
-    KIWIFI: 'Kiwifi'
+    PIX: 'PIX'
 };
 
 // Subscription Status

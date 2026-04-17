@@ -327,6 +327,20 @@ export const updateSaleStatus = async (saleId, status) => {
     }
 };
 
+export const updateSale = async (saleId, updates) => {
+    try {
+        const saleRef = doc(db, "sales", saleId);
+        await updateDoc(saleRef, {
+            ...updates,
+            updatedAt: new Date().toISOString()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating sale:", error);
+        return { success: false, error: error.message };
+    }
+};
+
 export const getAllStores = async () => {
     try {
         const querySnapshot = await getDocs(collection(db, "stores"));

@@ -86,7 +86,15 @@ const Settings = () => {
         adminPin: '', // New custom Admin PIN
         enableComandas: false,
         enableServiceTax: false,
-        inscricaoEstadual: ''
+        inscricaoEstadual: '',
+        cep: '',
+        logradouro: '',
+        numero: '',
+        complemento: '',
+        bairro: '',
+        cidade: '',
+        uf: '',
+        naturezaOperacao: 'Vendas de mercadorias'
     });
     const [isLoading, setIsLoading] = useState(false);
 
@@ -125,7 +133,15 @@ const Settings = () => {
                 focusToken: current.focusToken || '',
                 nfeEnvironment: current.nfeEnvironment || '2', // 1=Production, 2=Homologation
                 nfeCrt: current.nfeCrt || '1', // 1=Simples Nacional, 3=Regime Normal
-                inscricaoEstadual: current.inscricaoEstadual || ''
+                inscricaoEstadual: current.inscricaoEstadual || '',
+                cep: current.cep || '',
+                logradouro: current.logradouro || '',
+                numero: current.numero || '',
+                complemento: current.complemento || '',
+                bairro: current.bairro || '',
+                cidade: current.cidade || '',
+                uf: current.uf || '',
+                naturezaOperacao: current.naturezaOperacao || 'Venda de mercadorias'
             });
         }
 
@@ -143,6 +159,29 @@ const Settings = () => {
 
     const handlePasswordChange = (e) => {
         setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
+    };
+
+    const handleCepSearch = async (cep) => {
+        const cleanCep = cep.replace(/\D/g, '');
+        if (cleanCep.length !== 8) return;
+
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+            const data = await response.json();
+
+            if (!data.erro) {
+                setStoreData(prev => ({
+                    ...prev,
+                    logradouro: data.logradouro,
+                    bairro: data.bairro,
+                    cidade: data.localidade,
+                    uf: data.uf,
+                    cep: cleanCep
+                }));
+            }
+        } catch (error) {
+            console.error("Erro ao buscar CEP:", error);
+        }
     };
 
     const handleSave = async (e) => {
@@ -165,7 +204,15 @@ const Settings = () => {
                 focusToken: storeData.focusToken,
                 nfeEnvironment: storeData.nfeEnvironment,
                 nfeCrt: storeData.nfeCrt,
-                inscricaoEstadual: storeData.inscricaoEstadual
+                inscricaoEstadual: storeData.inscricaoEstadual,
+                cep: storeData.cep,
+                logradouro: storeData.logradouro,
+                numero: storeData.numero,
+                complemento: storeData.complemento,
+                bairro: storeData.bairro,
+                cidade: storeData.cidade,
+                uf: storeData.uf,
+                naturezaOperacao: storeData.naturezaOperacao
             };
 
             // Validation: PIN numeric
@@ -390,15 +437,85 @@ const Settings = () => {
                                     </div>
                                 </div>
 
-                                <div className="mb-4">
-                                    <label className="input-label-premium">Endereço (Para Recibo)</label>
-                                    <input
-                                        name="address"
-                                        className="input-premium"
-                                        value={storeData.address}
-                                        onChange={handleChange}
-                                        placeholder="Rua, Número, Cidade..."
-                                    />
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label className="input-label-premium">CEP (Busca Automática)</label>
+                                        <input
+                                            name="cep"
+                                            className="input-premium"
+                                            value={storeData.cep}
+                                            onChange={(e) => {
+                                                handleChange(e);
+                                                if (e.target.value.length === 8) handleCepSearch(e.target.value);
+                                            }}
+                                            placeholder="00000-000"
+                                            maxLength={9}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="input-label-premium">Logradouro / Rua</label>
+                                        <input
+                                            name="logradouro"
+                                            className="input-premium"
+                                            value={storeData.logradouro}
+                                            onChange={handleChange}
+                                            placeholder="Ex: Av. Brasil"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="input-label-premium">Número</label>
+                                        <input
+                                            name="numero"
+                                            className="input-premium"
+                                            value={storeData.numero}
+                                            onChange={handleChange}
+                                            placeholder="123"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="input-label-premium">Bairro</label>
+                                        <input
+                                            name="bairro"
+                                            className="input-premium"
+                                            value={storeData.bairro}
+                                            onChange={handleChange}
+                                            placeholder="Centro"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label className="input-label-premium">Cidade / Município</label>
+                                        <input
+                                            name="cidade"
+                                            className="input-premium"
+                                            value={storeData.cidade}
+                                            onChange={handleChange}
+                                            placeholder="São Paulo"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="input-label-premium">UF (Estado)</label>
+                                        <input
+                                            name="uf"
+                                            className="input-premium uppercase"
+                                            value={storeData.uf}
+                                            onChange={handleChange}
+                                            placeholder="SP"
+                                            maxLength={2}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="input-label-premium">Complemento</label>
+                                        <input
+                                            name="complemento"
+                                            className="input-premium"
+                                            value={storeData.complemento}
+                                            onChange={handleChange}
+                                            placeholder="Sala 10, Bloco A"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 mb-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -441,6 +558,18 @@ const Settings = () => {
                                         onChange={handleChange}
                                         placeholder="Cole o token da sua conta Focus NFe"
                                     />
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="input-label-premium">Natureza da Operação (Padrão)</label>
+                                    <input
+                                        name="naturezaOperacao"
+                                        className="input-premium"
+                                        value={storeData.naturezaOperacao || 'Venda de mercadorias'}
+                                        onChange={handleChange}
+                                        placeholder="Ex: Venda de mercadorias"
+                                    />
+                                    <small className="text-gray-500">Usado na emissão fiscal para classificar a operação.</small>
                                 </div>
 
                                 <div className="mb-4">

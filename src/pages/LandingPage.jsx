@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCheck, FaStore, FaMobileAlt, FaShieldAlt, FaChartLine, FaWhatsapp, FaArrowRight, FaBolt, FaTimes, FaCrown, FaPrint, FaUsers, FaPlay } from 'react-icons/fa';
+import { FaCheck, FaStore, FaMobileAlt, FaShieldAlt, FaChartLine, FaWhatsapp, FaArrowRight, FaBolt, FaTimes, FaCrown, FaPrint, FaUsers, FaPlay, FaFileInvoice } from 'react-icons/fa';
 import logo from '../assets/caramelo-logo.png';
 // import dashboardThumb from '../assets/dashboard-thumb.png';
 import { loginDemoUser } from '../services/demoService';
@@ -198,7 +198,7 @@ const LandingPage = () => {
                     <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
                         <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 backdrop-blur-sm animate-fade-in-up">
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <span className="text-gray-300 text-sm font-medium">Sistema Online • v2.4 Atualizada</span>
+                            <span className="text-gray-300 text-sm font-medium">Sistema Online • v2.5 • <span className="text-amber-400 font-bold">NF-e / NFC-e Integrado</span></span>
                         </div>
 
                         <h1 className="text-5xl md:text-6xl xl:text-7xl font-extrabold text-white tracking-tight mb-6 leading-tight">
@@ -209,7 +209,7 @@ const LandingPage = () => {
                         </h1>
 
                         <p className="text-lg md:text-xl text-gray-400 mb-8 leading-relaxed max-w-2xl lg:max-w-none">
-                            Abandone as planilhas e o caderninho. Tenha controle total de estoque, vendas e financeiro em uma plataforma simples, bonita e poderosa.
+                            Abandone as planilhas e o caderninho. Tenha controle total de estoque, vendas, financeiro e agora <span className="text-amber-400 font-semibold">emissão de NF-e e NFC-e</span> integrada — tudo em uma plataforma simples, bonita e poderosa.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start w-full sm:w-auto">
@@ -258,6 +258,7 @@ const LandingPage = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <FeatureCard icon={<FaStore />} title="Frente de Caixa (PDV)" desc="Venda em segundos. Interface intuitiva, compatível com leitor de código de barras e impressoras térmicas." />
+                        <FeatureCard icon={<FaFileInvoice />} title="Emissão de NF-e / NFC-e" desc="Emita notas fiscais eletrônicas direto do PDV com integração oficial via Focus NFe. Totalmente dentro da legislação." />
                         <FeatureCard icon={<FaMobileAlt />} title="Acesso Mobile" desc="Acompanhe suas vendas em tempo real de qualquer lugar pelo celular. Seu negócio não para." />
                         <FeatureCard icon={<FaShieldAlt />} title="Segurança Avançada" desc="Bloqueio remoto em caso de inadimplência e backups automáticos na nuvem para você nunca perder dados." />
                         <FeatureCard icon={<FaChartLine />} title="Relatórios Detalhados" desc="Saiba exatamente quanto lucrou. Gráficos de vendas diárias, mensais e produtos mais vendidos." />
@@ -445,6 +446,10 @@ const LandingPage = () => {
                                         <div className="flex items-center gap-3 text-xs text-slate-200"><FaCheck className="text-amber-500" /> Relatórios em PDF</div>
                                         <div className="flex items-center gap-3 text-xs text-slate-200"><FaCheck className="text-amber-500" /> Controle de Fiados</div>
                                         <div className="flex items-center gap-3 text-xs text-slate-200"><FaCheck className="text-amber-500" /> Sistema em Nuvem</div>
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-3 text-xs text-amber-400 font-bold"><FaFileInvoice className="text-amber-400 shrink-0" /> Emissão NF-e / NFC-e <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full uppercase tracking-wider ml-1">Novo</span></div>
+                                            <p className="text-[10px] text-slate-500 leading-relaxed pl-5">Requer assinatura separada da <span className="text-slate-400 font-semibold">Focus NFe</span> (a partir de R$ 59,90/mês) — veja detalhes abaixo.</p>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -479,6 +484,10 @@ const LandingPage = () => {
                                 <div className="space-y-3 flex-1">
                                     <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Funcionalidades</div>
                                     <div className="flex items-center gap-3 text-xs text-amber-500 font-bold"><FaCheck /> Tudo do Plano Business</div>
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex items-center gap-3 text-xs text-amber-500 font-bold"><FaFileInvoice className="shrink-0" /> Emissão NF-e / NFC-e Suportada</div>
+                                        <p className="text-[10px] text-slate-500 leading-relaxed pl-5">Integração via Focus NFe — assinatura separada a partir de R$ 59,90/mês.</p>
+                                    </div>
                                     <div className="flex items-center gap-3 text-xs text-amber-500 font-bold"><FaCheck /> Gerente de Conta Dedicado</div>
                                     <div className="flex items-center gap-3 text-xs text-amber-500 font-bold"><FaCheck /> Backup em Tempo Real Plus</div>
                                     <div className="flex items-center gap-3 text-xs text-amber-500 font-bold"><FaCheck /> Dashboard Multi-lojas</div>
@@ -490,6 +499,91 @@ const LandingPage = () => {
                             <a href={getCheckoutLink('premium')} target="_blank" rel="noopener noreferrer" className="mt-10 w-full py-4 rounded-2xl border border-white/10 text-white font-bold hover:bg-slate-800 transition-all text-sm uppercase tracking-widest block text-center">Assinar Agora</a>
                         </div>
                     </div>
+
+                    {/* Focus NFe Info Block */}
+                    <div className="mt-16 p-[1px] rounded-[28px] bg-gradient-to-r from-amber-500/30 via-white/5 to-amber-500/10">
+                        <div className="bg-slate-900/80 backdrop-blur-sm rounded-[27px] p-8 lg:p-10">
+
+                            {/* Header */}
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+                                    <FaFileInvoice className="text-lg" />
+                                </div>
+                                <div>
+                                    <span className="text-amber-400 text-xs font-bold uppercase tracking-widest block">Integração de NF-e / NFC-e</span>
+                                    <h3 className="text-white font-bold text-lg leading-tight">Como funciona a emissão de notas fiscais?</h3>
+                                </div>
+                            </div>
+                            <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-3xl">
+                                Para emitir NF-e e NFC-e diretamente pelo Caramelo PDV, você precisará assinar também um plano da <strong className="text-white">Focus NFe</strong> — plataforma homologada pela SEFAZ que processa as notas fiscais. Abaixo está o plano indicado para a maioria dos nossos clientes:
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                {/* Focus Retail Plan */}
+                                <div className="p-6 rounded-2xl bg-slate-800/70 border border-amber-500/30 flex flex-col gap-3 relative">
+                                    <div className="absolute -top-3 left-5 bg-amber-500 text-black text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full">plano indicado</div>
+                                    <div className="text-[10px] font-bold text-amber-500/60 uppercase tracking-widest">Focus NFe · Retail (NFC-e)</div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-slate-500 text-sm font-bold">R$</span>
+                                        <span className="text-white text-4xl font-black">59,90</span>
+                                        <span className="text-slate-500 text-sm">/mês</span>
+                                    </div>
+                                    <ul className="space-y-2 mt-1">
+                                        {['1 CNPJ', '500 NFC-e incluídas/mês', '100 NF-e incluídas/mês', '+ R$ 0,05 por NFC-e adicional', '+ R$ 0,15 por NF-e adicional', '30 dias de teste grátis'].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-2 text-xs text-slate-400">
+                                                <FaCheck className="text-amber-500 shrink-0 text-[10px]" />
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <a href="https://focusnfe.com.br/precos/" target="_blank" rel="noopener noreferrer" className="mt-auto pt-3 border-t border-amber-500/10 text-xs text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 font-semibold">
+                                        Ver no site da Focus NFe <FaArrowRight className="text-[10px]" />
+                                    </a>
+                                </div>
+
+                                {/* Why Focus NFe */}
+                                <div className="p-6 rounded-2xl bg-slate-800/30 border border-white/5 flex flex-col gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <FaShieldAlt className="text-green-500 shrink-0" />
+                                        <span className="text-sm font-bold text-white">Por que a Focus NFe?</span>
+                                    </div>
+                                    <p className="text-slate-400 text-xs leading-relaxed">
+                                        A Focus NFe é uma das principais plataformas de emissão de documentos fiscais do Brasil, com integração via API REST e homologação direta com a SEFAZ.
+                                    </p>
+                                    <ul className="space-y-2 mt-1">
+                                        {['API 100% homologada SEFAZ', 'Suporte a NF-e, NFC-e, CT-e e MDF-e', 'Sem taxa de setup ou fidelidade', 'Infraestrutura segura e redundante'].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-2 text-xs text-slate-400">
+                                                <FaCheck className="text-green-500 shrink-0 text-[10px]" />
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {/* Contact CTA */}
+                                <div className="p-6 rounded-2xl bg-slate-800/30 border border-white/5 flex flex-col gap-4 justify-between">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <FaWhatsapp className="text-green-400 text-lg shrink-0" />
+                                            <span className="text-sm font-bold text-white">Ficou com dúvidas?</span>
+                                        </div>
+                                        <p className="text-slate-400 text-xs leading-relaxed">
+                                            Nossa equipe te ajuda a configurar a integração com a Focus NFe do zero — sem complicação. Chame no WhatsApp e tire todas as suas dúvidas antes de assinar.
+                                        </p>
+                                    </div>
+                                    <div className="w-full py-3 rounded-xl bg-slate-700/50 border border-white/5 text-slate-500 font-bold text-sm flex items-center justify-center gap-2 cursor-not-allowed">
+                                        <FaWhatsapp /> Em breve
+                                    </div>
+                                    <p className="text-slate-600 text-[10px] text-center">Canal de atendimento em breve</p>
+                                </div>
+                            </div>
+
+                            <p className="mt-6 text-xs text-slate-600 text-center">
+                                * Preços da Focus NFe sujeitos a alteração. Consulte sempre o site oficial focusnfe.com.br para valores atualizados.
+                            </p>
+                        </div>
+                    </div>
+
                 </div>
             </section>
 

@@ -3,8 +3,8 @@ import { FaSearch, FaTimes, FaPrint, FaTrash, FaUndo, FaExchangeAlt, FaFileInvoi
 import { printReceipt, printVoucher } from '../utils/printer';
 import { formatCurrency, formatDate, generateId } from '../utils/calculations';
 import { getCurrentStore } from '../utils/storage';
-import { getSales, updateSaleStatus, increaseStock, createVoucher } from '../services/dbService';
-import { consultNfce, emitNfe55 } from '../services/nfeService';
+import { getSales, updateSaleStatus, increaseStock, createVoucher, updateSale } from '../services/dbService';
+import { consultNfce, emitNfe55, emitAndWaitNfce } from '../services/nfeService';
 import PinModal from '../components/PinModal';
 
 const Sales = () => {
@@ -170,6 +170,18 @@ const Sales = () => {
             const res = await consultNfce(currentStore.id, selectedSale.id);
             if (res.success && res.pdf) {
                 window.open(`https://api.focusnfe.com.br${res.pdf}`, '_blank');
+                
+                // Sync status back to DB
+                if (res.modelo) {
+                    await updateSale(selectedSale.id, {
+                        invoice_status: res.status || 'autorizado',
+                        invoice_model: res.modelo,
+                        invoice_date: new Date().toISOString()
+                    });
+                    
+                    // Update local state to show badge immediately
+                    loadSales(currentStore.id);
+                }
             } else if (res.success && res.status === "processando_autorizacao") {
                 alert("A nota ainda está em processamento na Sefaz. Tente novamente em alguns segundos.");
             } else {
@@ -180,6 +192,38 @@ const Sales = () => {
             alert("Erro ao consultar NFC-e.");
         } finally {
             setIsConsultingNfce(false);
+        }
+    };
+
+    const handleEmitNfce = async () => {
+        if (!selectedSale || !currentStore) return;
+
+        if (!confirm("Deseja emitir a NFC-e (Modelo 65) para esta venda?")) return;
+
+        setIsEmittingNfe(true); // Using same loading state for simplicity or can create new one
+        try {
+            const res = await emitAndWaitNfce(currentStore.id, selectedSale);
+            if (res.success) {
+                alert("NFC-e emitida com sucesso!");
+                if (res.pdf) window.open(`https://api.focusnfe.com.br${res.pdf}`, '_blank');
+
+                // Persist status
+                await updateSale(selectedSale.id, {
+                    invoice_status: 'autorizado',
+                    invoice_model: '65',
+                    invoice_date: new Date().toISOString()
+                });
+
+                // Update local state
+                loadSales(currentStore.id);
+            } else {
+                alert(`Erro na emissão: ${res.error}`);
+            }
+        } catch (error) {
+            console.error("Emit NFC-e Error:", error);
+            alert("Erro ao emitir NFC-e.");
+        } finally {
+            setIsEmittingNfe(false);
         }
     };
 
@@ -257,7 +301,7 @@ const Sales = () => {
                                 <th className="hidden sm:table-cell">ID Venda</th>
                                 <th className="hidden md:table-cell">Pagamento</th>
                                 <th>Total</th>
-                                <th className="hidden sm:table-cell">Desconto</th>
+                                <th>Documento</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -287,11 +331,13 @@ const Sales = () => {
                                         )}
                                     </td>
                                     <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{formatCurrency(sale.total)}</td>
-                                    <td className="hidden sm:table-cell">
-                                        {sale.payment?.discount > 0 ? (
-                                            <span style={{ color: '#ef4444', fontSize: '0.8rem' }}>-{formatCurrency(sale.payment.discount)}</span>
+                                    <td>
+                                        {sale.invoice_model === '65' ? (
+                                            <span className="bg-[#059669] text-white px-2 py-0.5 rounded text-[10px] font-black shadow-sm">NFC-E</span>
+                                        ) : sale.invoice_model === '55' ? (
+                                            <span className="bg-[#2563eb] text-white px-2 py-0.5 rounded text-[10px] font-black shadow-sm">NF-E</span>
                                         ) : (
-                                            <span style={{ color: '#444', fontSize: '0.8rem' }}>-</span>
+                                            <span className="bg-[#4b5563] text-white/50 px-2 py-0.5 rounded text-[10px] font-bold">NÃO FISCAL</span>
                                         )}
                                     </td>
                                     <td>
@@ -467,10 +513,17 @@ const Sales = () => {
                                         </button>
                                         <button
                                             className="flex flex-col items-center justify-center gap-1 p-3 bg-green-900/20 text-green-400 border border-green-500/30 rounded-2xl hover:bg-green-900/40 active:scale-95 transition-all text-[10px] font-black uppercase disabled:opacity-30"
-                                            onClick={handleEmitNfe55}
-                                            disabled={isEmittingNfe || selectedSale.status === 'CANCELLED'}
+                                            onClick={handleEmitNfce}
+                                            disabled={isEmittingNfe || selectedSale.status === 'CANCELLED' || selectedSale.invoice_model === '65' || selectedSale.invoice_model === '55'}
                                         >
-                                            <FaFileInvoiceDollar size={16} /> {isEmittingNfe ? 'Emitindo...' : 'NF-e 55'}
+                                            <FaFileInvoiceDollar size={16} /> {isEmittingNfe ? '...' : 'NFC-e 65'}
+                                        </button>
+                                        <button
+                                            className="flex flex-col items-center justify-center gap-1 p-3 bg-blue-900/20 text-blue-400 border border-blue-500/30 rounded-2xl hover:bg-blue-900/40 active:scale-95 transition-all text-[10px] font-black uppercase disabled:opacity-30"
+                                            onClick={handleEmitNfe55}
+                                            disabled={isEmittingNfe || selectedSale.status === 'CANCELLED' || selectedSale.invoice_model === '65' || selectedSale.invoice_model === '55'}
+                                        >
+                                            <FaFileInvoiceDollar size={16} /> {isEmittingNfe ? '...' : 'NF-e 55'}
                                         </button>
                                         <button
                                             className="flex flex-col items-center justify-center gap-1 p-3 bg-purple-900/20 text-purple-400 border border-purple-500/30 rounded-2xl hover:bg-purple-900/40 active:scale-95 transition-all text-[10px] font-black uppercase disabled:opacity-30"

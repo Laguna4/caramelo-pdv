@@ -391,24 +391,24 @@ const Reports = () => {
                             DESBLOQUEAR ACESSO
                         </button>
                     </div>
-
-                    <PinModal
-                        isOpen={showPinModal}
-                        onClose={() => setShowPinModal(false)}
-                        onSuccess={(user) => {
-                            if (user.role === 'ADMIN' || user.role === 'MANAGER' || (user.permissions && user.permissions.includes('view_reports'))) {
-                                setIsAuthorized(true);
-                                setShowPinModal(false);
-                                sessionStorage.setItem('caramelo_report_user', JSON.stringify(user));
-                            } else {
-                                alert('Acesso Negado: Você não tem permissão para ver relatórios.');
-                            }
-                        }}
-                        title="Senha de Gerente"
-                        requiredRole="SELLER"
-                    />
                 </div>
             )}
+
+            <PinModal
+                isOpen={showPinModal}
+                onClose={() => setShowPinModal(false)}
+                onSuccess={(user) => {
+                    if (user.role === 'ADMIN' || user.role === 'MANAGER' || (user.permissions && user.permissions.includes('view_reports'))) {
+                        setIsAuthorized(true);
+                        setShowPinModal(false);
+                        sessionStorage.setItem('caramelo_report_user', JSON.stringify(user));
+                    } else {
+                        alert('Acesso Negado: Você não tem permissão para ver relatórios.');
+                    }
+                }}
+                title="Senha de Gerente"
+                requiredRole="SELLER"
+            />
 
             {/* HEADER RESPONSIVO */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-800 pb-6">
