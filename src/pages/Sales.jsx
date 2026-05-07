@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { FaSearch, FaTimes, FaPrint, FaTrash, FaUndo, FaExchangeAlt, FaFileInvoiceDollar, FaCheckSquare, FaSquare } from 'react-icons/fa';
+import { FaSearch, FaTimes, FaPrint, FaTrash, FaUndo, FaExchangeAlt, FaFileInvoiceDollar, FaCheckSquare, FaSquare, FaCloudDownloadAlt } from 'react-icons/fa';
 import { printReceipt, printVoucher } from '../utils/printer';
 import { formatCurrency, formatDate, generateId } from '../utils/calculations';
 import { getCurrentStore } from '../utils/storage';
 import { getSales, updateSaleStatus, increaseStock, createVoucher, updateSale } from '../services/dbService';
 import { consultNfce, emitNfe55, emitAndWaitNfce } from '../services/nfeService';
 import PinModal from '../components/PinModal';
+import NfeBackupModal from '../components/NfeBackupModal';
 
 const Sales = () => {
     const [sales, setSales] = useState([]);
@@ -27,6 +28,7 @@ const Sales = () => {
     // NFe State
     const [isConsultingNfce, setIsConsultingNfce] = useState(false);
     const [isEmittingNfe, setIsEmittingNfe] = useState(false);
+    const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
 
     // Load initial data
     useEffect(() => {
@@ -259,8 +261,16 @@ const Sales = () => {
                 <h1 style={{ fontSize: '1.8rem', background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>
                     <FaSearch className="mr-2" style={{ color: 'var(--primary)' }} /> Localizador de Vendas
                 </h1>
-                <div style={{ color: 'var(--text-scnd)' }}>
-                    {filteredSales.length} registros encontrados
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => setIsBackupModalOpen(true)}
+                        className="btn bg-gray-800 text-white hover:bg-gray-700 py-2 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border border-gray-700 rounded-xl transition-all"
+                    >
+                        <FaCloudDownloadAlt className="text-primary" /> Exportar XMLs
+                    </button>
+                    <div style={{ color: 'var(--text-scnd)' }}>
+                        {filteredSales.length} registros encontrados
+                    </div>
                 </div>
             </div>
 
@@ -610,6 +620,11 @@ const Sales = () => {
                     </div>
                 )
             }
+
+            <NfeBackupModal 
+                isOpen={isBackupModalOpen} 
+                onClose={() => setIsBackupModalOpen(false)} 
+            />
         </div >
     );
 };

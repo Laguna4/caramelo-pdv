@@ -1,13 +1,55 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /system/site_settings {
-      allow read: if true;
-      allow write: if request.auth != null;
+    
+    // Função utilitária: Verifica se o usuário é o Super Admin Mestre
+    function isSuperAdmin() {
+      return request.auth != null && request.auth.token.email == 'lucasluob@gmail.com';
     }
 
+    // Configurações globais (Landing Page, Vídeos, Links Kiwify)
+    match /system/{document=**} {
+      // Qualquer um pode ler para carregar a landing page
+      allow read: if true;
+      // Apenas o dono do sistema pode alterar os links
+      allow write: if isSuperAdmin();
+    }
+
+    // Coleção de Lojas (Isolamento Principal)
+    match /stores/{storeId}/{document=**} {
+      // O dono da loja acessa a própria loja. O Super Admin acessa todas.
+      allow read, write: if isSuperAdmin() || (request.auth != null && request.auth.uid == storeId);
+    }
+
+    // Coleções filhas/dependentes vinculadas a uma loja específica
+    // Elas contêm o campo `storeId` em todos os documentos.
+    match /{collectionName}/{docId} {
+      // Permitir apenas se for uma coleção conhecida e o storeId do documento for igual ao UID de quem logou.
+      allow read, write: if isSuperAdmin() || (
+        request.auth != null && 
+        collectionName in ['products', 'sales', 'services', 'service_orders', 'customers', 'sellers', 'transactions', 'cash_registers', 'vouchers', 'debts', 'budgets'] &&
+        resource.data.storeId == request.auth.uid
+      );
+      
+      // Para criar novos documentos, o campo storeId enviado precisa ser o próprio UID.
+      allow create: if isSuperAdmin() || (
+        request.auth != null && 
+        collectionName in ['products', 'sales', 'services', 'service_orders', 'customers', 'sellers', 'transactions', 'cash_registers', 'vouchers', 'debts', 'budgets'] &&
+        request.resource.data.storeId == request.auth.uid
+      );
+    }
+
+    // Revendedores (Partners) e Comissões
+    match /partners/{partnerId} {
+      allow read, write: if isSuperAdmin();
+    }
+    match /partner_commissions/{docId} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    // Bloquear qualquer outra coleção por padrão (Fallback Seguro)
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSuperAdmin();
     }
   }
 }

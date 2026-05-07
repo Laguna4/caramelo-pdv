@@ -370,7 +370,9 @@ const POS = () => {
             observation: paymentInfo.observation || '',
             date: paymentInfo.date || new Date().toISOString(),
             status: 'COMPLETED',
-            registerId: cashRegister?.id
+            registerId: cashRegister?.id,
+            deliveryDate: paymentInfo.deliveryDate || null,
+            deliveryStatus: paymentInfo.deliveryStatus || null
         };
 
         // Prepare Debts if applicable
@@ -753,7 +755,24 @@ const POS = () => {
                 </div>
             </div>
 
-            {showPaymentModal && <PaymentModal items={cartItems} total={total} onClose={() => setShowPaymentModal(false)} onComplete={completeSale} storeName={currentStore?.name} cnpj={currentStore?.cnpj} customer={selectedCustomer} onOpenCustomerModal={() => setShowCustomerModal(true)} onSaveBudget={(budgetInfo) => handleSaveBudget(budgetInfo)} />}
+            {showPaymentModal && (
+                <PaymentModal
+                    items={cartItems}
+                    total={total}
+                    customer={selectedCustomer}
+                    allCustomers={customers}
+                    onSelectCustomer={setSelectedCustomer}
+                    onClose={() => setShowPaymentModal(false)}
+                    onOpenCustomerModal={() => {
+                        setShowPaymentModal(false);
+                        setShowCustomerModal(true);
+                    }}
+                    onSaveBudget={(budgetInfo) => handleSaveBudget(budgetInfo)}
+                    onComplete={completeSale}
+                    storeName={currentStore?.name}
+                    cnpj={currentStore?.cnpj}
+                />
+            )}
             <PinModal isOpen={showOperatorModal} onClose={handleOperatorLoginClose} onSuccess={handleOperatorAuth} title="Identifique-se" requiredRole="SELLER" />
             <ProductSearchModal isOpen={showSearchModal} onClose={() => { setShowSearchModal(false); setTimeout(() => barcodeInputRef.current?.focus(), 100); }} results={searchResults} onSelect={handleSelectProduct} />
             <SalespersonSelectionModal isOpen={showSalespersonModal} onClose={() => setShowSalespersonModal(false)} sellers={sellers} onSelect={(seller) => { setFinalizingSeller(seller); setShowSalespersonModal(false); setShowPaymentModal(true); }} />

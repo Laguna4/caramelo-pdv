@@ -336,3 +336,39 @@ export const emitAndWaitNfce = async (storeId, sale, maxAttempts = 5) => {
 
     return { success: false, error: "Tempo limite de comunicação esgotado (Timeout)." };
 };
+
+export const getNfeBackups = async (storeId) => {
+    try {
+        const store = await getStore(storeId);
+        if (!store) return { success: false, error: "Loja não encontrada." };
+        if (!store.focusToken) return { success: false, error: "Token da Focus NFe não configurado." };
+
+        const proxyFocusNfe = httpsCallable(functions, 'proxyFocusNfe');
+        const response = await proxyFocusNfe({
+            endpoint: `/backups`,
+            method: 'GET',
+            token: store.focusToken,
+            environment: store.nfeEnvironment,
+            cnpj: cleanDocument(store.cnpj)
+        });
+
+        const data = response.data?.data || [];
+        const isOk = response.data?.ok;
+
+        if (!isOk) {
+            return {
+                success: false,
+                error: data.mensagem || data.codigo || "Erro ao consultar backups",
+                details: data.erros || []
+            };
+        }
+
+        return {
+            success: true,
+            backups: Array.isArray(data) ? data : (data.backups || [])
+        };
+    } catch (err) {
+        console.error("NFE Backups Error", err);
+        return { success: false, error: `Erro na Consulta de Backups: ${err.message}` };
+    }
+};

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
-import { FaStore, FaUserCircle, FaBars, FaTimes, FaHome, FaCashRegister, FaBoxOpen, FaSearch, FaUsers, FaMoneyBillWave, FaUserTie, FaChartLine, FaHistory, FaClipboardList, FaUtensils, FaFire, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import { FaStore, FaUserCircle, FaBars, FaTimes, FaHome, FaCashRegister, FaBoxOpen, FaSearch, FaUsers, FaMoneyBillWave, FaUserTie, FaChartLine, FaHistory, FaClipboardList, FaUtensils, FaFire, FaCog, FaSignOutAlt, FaCut, FaFileInvoiceDollar } from 'react-icons/fa';
 import { logout as authLogout } from './services/authService';
 import './tailwind_app.css';
 import logo from './assets/caramelo-logo.png';
@@ -26,6 +26,8 @@ import Settings from './pages/Settings';
 import UpdateStoreName from './pages/UpdateStoreName';
 import Tables from './pages/Tables';
 import Kitchen from './pages/Kitchen';
+import ServicesCatalog from './pages/ServicesCatalog';
+import ServiceOrders from './pages/ServiceOrders';
 
 // Utils & Services
 import { getCurrentStore, getCurrentUser, logout } from './utils/storage';
@@ -232,6 +234,16 @@ const AppLayout = ({ currentStore }) => {
             <Link to="/products" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 text-amber-400 hover:text-amber-300 transition-colors">
               <FaBoxOpen /> Produtos
             </Link>
+            {currentStore?.enableNfse && (
+              <>
+                <Link to="/services-catalog" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 text-teal-400 hover:text-teal-300 transition-colors">
+                  <FaCut /> Catálogo de Serviços
+                </Link>
+                <Link to="/service-orders" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 text-indigo-400 hover:text-indigo-300 transition-colors">
+                  <FaFileInvoiceDollar /> Serviços Prestados
+                </Link>
+              </>
+            )}
             <Link to="/sales" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 text-orange-400 hover:text-orange-300 transition-colors">
               <FaSearch /> Vendas
             </Link>
@@ -321,6 +333,8 @@ const AppLayout = ({ currentStore }) => {
               <Route path="/debts" element={<Debts />} />
               <Route path="/financial" element={<Financial />} />
               <Route path="/products" element={<Products />} />
+              <Route path="/services-catalog" element={<ServicesCatalog />} />
+              <Route path="/service-orders" element={<ServiceOrders />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/sales" element={<Sales />} />
               <Route path="/sellers" element={<Sellers />} />

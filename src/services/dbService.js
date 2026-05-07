@@ -99,6 +99,103 @@ export const getProducts = async (storeId) => {
     }
 };
 
+// --- SERVICES (Catalog) ---
+
+export const addService = async (storeId, serviceData) => {
+    try {
+        const data = {
+            ...serviceData,
+            storeId,
+            createdAt: serviceData.createdAt || new Date().toISOString()
+        };
+        const docRef = await addDoc(collection(db, "services"), data);
+        return { success: true, id: docRef.id };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+};
+
+export const updateService = async (serviceId, updates) => {
+    try {
+        const docRef = doc(db, "services", serviceId);
+        await updateDoc(docRef, {
+            ...updates,
+            updatedAt: new Date().toISOString()
+        });
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+};
+
+export const deleteService = async (serviceId) => {
+    try {
+        await deleteDoc(doc(db, "services", serviceId));
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+};
+
+export const getServices = async (storeId) => {
+    try {
+        const q = query(
+            collection(db, "services"),
+            where("storeId", "==", storeId)
+        );
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Error fetching services:", error);
+        return [];
+    }
+};
+
+// --- SERVICE ORDERS ---
+
+export const addServiceOrder = async (storeId, orderData) => {
+    try {
+        const orderId = orderData.id || generateId();
+        const orderRef = doc(db, "service_orders", orderId);
+
+        await setDoc(orderRef, {
+            ...orderData,
+            storeId,
+            id: orderId
+        });
+
+        return { success: true, id: orderId };
+    } catch (error) {
+        console.error("Error adding service order:", error);
+        return { success: false, error: error.message };
+    }
+};
+
+export const getServiceOrders = async (storeId) => {
+    try {
+        const q = query(collection(db, "service_orders"), where("storeId", "==", storeId));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Error fetching service orders:", error);
+        return [];
+    }
+};
+
+export const updateServiceOrder = async (orderId, updates) => {
+    try {
+        const orderRef = doc(db, "service_orders", orderId);
+        await updateDoc(orderRef, {
+            ...updates,
+            updatedAt: new Date().toISOString()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating service order:", error);
+        return { success: false, error: error.message };
+    }
+};
+
 // --- SALES ---
 
 export const addSale = async (storeId, saleData) => {
@@ -875,6 +972,20 @@ export const updateBudgetStatus = async (budgetId, status) => {
         return { success: true };
     } catch (error) {
         console.error("Error updating budget status:", error);
+        return { success: false, error: error.message };
+    }
+};
+
+export const updateSaleDelivery = async (saleId, deliveryData) => {
+    try {
+        const docRef = doc(db, "sales", saleId);
+        await updateDoc(docRef, { 
+            ...deliveryData, 
+            updatedAt: new Date().toISOString() 
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating sale delivery:", error);
         return { success: false, error: error.message };
     }
 };

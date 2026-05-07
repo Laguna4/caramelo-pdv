@@ -87,6 +87,9 @@ const Settings = () => {
         enableComandas: false,
         enableServiceTax: false,
         inscricaoEstadual: '',
+        inscricaoMunicipal: '',
+        cnaePadrao: '',
+        codigoTributacaoMunicipioPadrao: '',
         cep: '',
         logradouro: '',
         numero: '',
@@ -130,10 +133,14 @@ const Settings = () => {
                 adminPin: current.adminPin || '',
                 enableComandas: current.enableComandas || false,
                 enableServiceTax: current.enableServiceTax || false,
+                enableNfse: current.enableNfse || false,
                 focusToken: current.focusToken || '',
                 nfeEnvironment: current.nfeEnvironment || '2', // 1=Production, 2=Homologation
                 nfeCrt: current.nfeCrt || '1', // 1=Simples Nacional, 3=Regime Normal
                 inscricaoEstadual: current.inscricaoEstadual || '',
+                inscricaoMunicipal: current.inscricaoMunicipal || '',
+                cnaePadrao: current.cnaePadrao || '',
+                codigoTributacaoMunicipioPadrao: current.codigoTributacaoMunicipioPadrao || '',
                 cep: current.cep || '',
                 logradouro: current.logradouro || '',
                 numero: current.numero || '',
@@ -200,13 +207,18 @@ const Settings = () => {
                 receiptFooter: storeData.receiptFooter,
                 adminPin: storeData.adminPin,
                 enableComandas: storeData.enableComandas,
-                enableServiceTax: storeData.enableServiceTax,
-                focusToken: storeData.focusToken,
-                nfeEnvironment: storeData.nfeEnvironment,
-                nfeCrt: storeData.nfeCrt,
-                inscricaoEstadual: storeData.inscricaoEstadual,
-                cep: storeData.cep,
-                logradouro: storeData.logradouro,
+                enableServiceTax: storeData.enableServiceTax || false,
+                enableNfse: storeData.enableNfse || false,
+                focusToken: storeData.focusToken || '',
+                nfeEnvironment: storeData.nfeEnvironment || '2',
+                nfeCrt: storeData.nfeCrt || '1',
+                inscricaoEstadual: storeData.inscricaoEstadual || '',
+                inscricaoMunicipal: storeData.inscricaoMunicipal || '',
+                codigoIbge: storeData.codigoIbge || '',
+                cnaePadrao: storeData.cnaePadrao || '',
+                codigoTributacaoMunicipioPadrao: storeData.codigoTributacaoMunicipioPadrao || '',
+                cep: storeData.cep || '',
+                logradouro: storeData.logradouro || '',
                 numero: storeData.numero,
                 complemento: storeData.complemento,
                 bairro: storeData.bairro,
@@ -572,16 +584,99 @@ const Settings = () => {
                                     <small className="text-gray-500">Usado na emissão fiscal para classificar a operação.</small>
                                 </div>
 
-                                <div className="mb-4">
-                                    <label className="input-label-premium">Inscrição Estadual (IE)</label>
-                                    <input
-                                        name="inscricaoEstadual"
-                                        className="input-premium"
-                                        value={storeData.inscricaoEstadual || ''}
-                                        onChange={handleChange}
-                                        placeholder="Apenas números (Ex: 0013894720058)"
-                                    />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label className="input-label-premium">Inscrição Estadual (IE)</label>
+                                        <input
+                                            name="inscricaoEstadual"
+                                            className="input-premium"
+                                            value={storeData.inscricaoEstadual || ''}
+                                            onChange={handleChange}
+                                            placeholder="Apenas números (Ex: 0013894720058)"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="input-label-premium">Ambiente Sefaz</label>
+                                        <select
+                                            name="nfeEnvironment"
+                                            className="input-premium"
+                                            value={storeData.nfeEnvironment}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="2">Homologação (Testes)</option>
+                                            <option value="1">Produção (Validade Jurídica)</option>
+                                        </select>
+                                    </div>
                                 </div>
+
+                                {/* NFS-e Toggle */}
+                                <div className="flex items-center justify-between p-4 bg-[#111] rounded-xl border border-gray-800 mb-4 mt-6">
+                                    <div>
+                                        <div className="font-bold text-white">Habilitar Serviços (NFS-e)</div>
+                                        <p className="text-gray-500 text-sm">Mostra os campos da prefeitura e ativa o menu de serviços.</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={storeData.enableNfse}
+                                            onChange={(e) => setStoreData({ ...storeData, enableNfse: e.target.checked })}
+                                        />
+                                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+
+                                {storeData.enableNfse && (
+                                    <div className="bg-gray-900/30 p-4 rounded-xl border border-gray-800 border-l-4 border-l-primary mb-4">
+                                        <h4 className="text-primary font-bold text-sm mb-4 uppercase tracking-wider">Dados para Prefeitura (NFS-e)</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                            <div>
+                                                <label className="input-label-premium">Inscrição Municipal (IM)</label>
+                                                <input
+                                                    name="inscricaoMunicipal"
+                                                    className="input-premium bg-[#050505]"
+                                                    value={storeData.inscricaoMunicipal || ''}
+                                                    onChange={handleChange}
+                                                    placeholder="Para NFS-e (Serviços)"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="input-label-premium">Código IBGE do Município</label>
+                                                <input
+                                                    name="codigoIbge"
+                                                    className="input-premium bg-[#050505]"
+                                                    value={storeData.codigoIbge || ''}
+                                                    onChange={handleChange}
+                                                    placeholder="Ex: 3550308"
+                                                />
+                                                <small className="text-gray-500 mt-1 block">Obrigatório (7 dígitos).</small>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                            <div>
+                                                <label className="input-label-premium">CNAE Padrão (Serviços)</label>
+                                                <input
+                                                    name="cnaePadrao"
+                                                    className="input-premium bg-[#050505]"
+                                                    value={storeData.cnaePadrao || ''}
+                                                    onChange={handleChange}
+                                                    placeholder="Ex: 7500100"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="input-label-premium">Cód. Tributação Município</label>
+                                                <input
+                                                    name="codigoTributacaoMunicipioPadrao"
+                                                    className="input-premium bg-[#050505]"
+                                                    value={storeData.codigoTributacaoMunicipioPadrao || ''}
+                                                    onChange={handleChange}
+                                                    placeholder="Ex: 0504"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div>

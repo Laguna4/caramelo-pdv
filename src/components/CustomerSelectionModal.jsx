@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaUser, FaSearch, FaTimes, FaPlus } from 'react-icons/fa';
 
-const CustomerSelectionModal = ({ isOpen, onClose, customers, onSelect, onAddNew }) => {
+const CustomerSelectionModal = ({ isOpen, onClose, customers = [], onSelect, onAddNew }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredCustomers, setFilteredCustomers] = useState([]);
 

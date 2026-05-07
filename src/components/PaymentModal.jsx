@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaMoneyBillWave, FaCreditCard, FaQrcode, FaExchangeAlt, FaTimes, FaPrint, FaCalculator, FaCheck, FaPercentage, FaTrash, FaUserCircle, FaFileInvoiceDollar } from 'react-icons/fa';
+import { FaMoneyBillWave, FaCreditCard, FaQrcode, FaExchangeAlt, FaTimes, FaPrint, FaCalculator, FaCheck, FaPercentage, FaTrash, FaUserCircle, FaFileInvoiceDollar, FaSearch } from 'react-icons/fa';
 import { formatCurrency, generateId } from '../utils/calculations';
 import { getVoucherByCode, updateVoucher } from '../services/dbService';
 import { getCurrentStore } from '../utils/storage';
@@ -14,7 +14,7 @@ const PAYMENT_METHODS = [
     { id: 'CREDIARIO', label: 'Crediário (Fiado)', icon: <FaUserCircle /> }
 ];
 
-const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj, customer, onOpenCustomerModal, onSaveBudget }) => {
+const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj, customer, onOpenCustomerModal, onSaveBudget, allCustomers = [], onSelectCustomer }) => {
     // State
     const [payments, setPayments] = useState([]);
     const [discountType, setDiscountType] = useState('VALUE'); // 'VALUE' or 'PERCENT'
@@ -26,6 +26,10 @@ const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj,
     const [isSavingBudget, setIsSavingBudget] = useState(false);
     const [showBudgetCustomerWarning, setShowBudgetCustomerWarning] = useState(false);
     const [observation, setObservation] = useState('');
+    const [deliveryDate, setDeliveryDate] = useState('');
+    const [isDelivery, setIsDelivery] = useState(false);
+    const [customerSearch, setCustomerSearch] = useState('');
+    const [showCustomerResults, setShowCustomerResults] = useState(false);
 
     // Fiscal State
     const [fiscalType, setFiscalType] = useState('NONE'); // 'NONE', 'NFCE', 'NFE55'
@@ -58,6 +62,14 @@ const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj,
     const totalPaid = payments.reduce((acc, p) => acc + (parseFloat(p.amount) || 0), 0);
     const remaining = Math.max(0, finalTotal - totalPaid);
     const change = Math.max(0, totalPaid - finalTotal);
+
+    const filteredCustomers = customerSearch.length > 0
+        ? allCustomers.filter(c =>
+            c.name?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+            c.phone?.includes(customerSearch) ||
+            c.cpf?.includes(customerSearch)
+        ).slice(0, 5)
+        : [];
 
     // Handlers
     const handleAddPayment = (e) => {
@@ -163,7 +175,9 @@ const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj,
             date: new Date().toISOString(),
             customer: customer,
             fiscalType, // 'NONE', 'NFCE', 'NFE55'
-            cpfCnpj: wantsCpf ? cpfCnpj : null
+            cpfCnpj: wantsCpf ? cpfCnpj : null,
+            deliveryDate: isDelivery ? deliveryDate : null,
+            deliveryStatus: isDelivery ? 'PENDING' : null
         };
         onComplete(paymentInfo);
     };
@@ -287,23 +301,96 @@ const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj,
                 {/* ===== LEFT PANEL: Amounts & Discount ===== */}
                 <div className="w-full md:w-[340px] md:shrink-0 flex flex-col bg-[#0a0a0a] border-b md:border-b-0 md:border-r border-white/10 overflow-y-auto custom-scrollbar max-h-[42vh] md:max-h-none">
                     <div className="p-4 md:p-8 flex flex-col gap-3 md:gap-5 relative">
-                        {/* Customer badge */}
-                        {customer && (
-                            <div className="absolute top-4 right-4 animate-fadeIn flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-full">
-                                <FaUserCircle className="text-blue-400" />
-                                <span className="text-[10px] font-black text-blue-400 uppercase tracking-wider truncate max-w-[120px]">
-                                    {customer.name}
-                                </span>
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 bg-caramelo-primary/10 rounded-2xl flex items-center justify-center text-caramelo-primary">
+                                <FaCalculator size={24} />
                             </div>
-                        )}
+                            <div>
+                                <h2 className="text-sm font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Pagamento</h2>
+                                <p className="text-3xl font-black text-white">{formatCurrency(finalTotal)}</p>
+                            </div>
+                        </div>
 
-                        {/* Title */}
-                        <h2 className="text-caramelo-primary text-lg font-black flex items-center gap-3 tracking-tighter">
-                            <FaCalculator /> PAGAMENTO
-                        </h2>
+                        {/* CUSTOMER SELECTION IN MODAL */}
+                        <div className="mb-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Cliente da Venda</label>
+                            {customer ? (
+                                <div className="flex items-center justify-between animate-fadeIn">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-caramelo-primary rounded-xl flex items-center justify-center text-white font-black text-sm">
+                                            {customer.name?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-bold text-white truncate">{customer.name}</p>
+                                            <p className="text-[10px] text-gray-500">{customer.phone || 'Sem telefone'}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => onSelectCustomer(null)}
+                                        className="p-2 text-gray-500 hover:text-red-500 transition-colors"
+                                        title="Remover Cliente"
+                                    >
+                                        <FaTrash size={12} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <div className="flex items-center bg-black/40 border border-white/10 rounded-xl px-3 py-2">
+                                        <FaSearch className="text-gray-500 mr-2" size={12} />
+                                        <input
+                                            type="text"
+                                            className="bg-transparent border-none outline-none text-xs text-white w-full"
+                                            placeholder="Buscar por nome ou CPF..."
+                                            value={customerSearch}
+                                            onChange={(e) => {
+                                                setCustomerSearch(e.target.value);
+                                                setShowCustomerResults(true);
+                                            }}
+                                            onFocus={() => setShowCustomerResults(true)}
+                                        />
+                                        {customerSearch && (
+                                            <button onClick={() => { setCustomerSearch(''); setShowCustomerResults(false); }}>
+                                                <FaTimes className="text-gray-500" size={12} />
+                                            </button>
+                                        )}
+                                    </div>
 
-                        {/* Main total */}
-                        <div className="text-2xl md:text-4xl font-black text-white tracking-tighter">{formatCurrency(total)}</div>
+                                    {showCustomerResults && customerSearch.length > 1 && (
+                                        <div className="absolute left-0 right-0 mt-2 bg-[#1a1a1a] border border-gray-800 rounded-xl shadow-2xl z-[1100] overflow-hidden">
+                                            {filteredCustomers.length > 0 ? (
+                                                filteredCustomers.map(c => (
+                                                    <button
+                                                        key={c.id}
+                                                        className="w-full text-left p-3 hover:bg-caramelo-primary/10 border-b border-gray-800/50 flex items-center gap-3 transition-colors group"
+                                                        onClick={() => {
+                                                            onSelectCustomer(c);
+                                                            setCustomerSearch('');
+                                                            setShowCustomerResults(false);
+                                                        }}
+                                                    >
+                                                        <div className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 font-bold text-xs group-hover:bg-caramelo-primary group-hover:text-white transition-colors">
+                                                            {c.name?.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs font-bold text-white group-hover:text-caramelo-primary">{c.name}</p>
+                                                            <p className="text-[10px] text-gray-500">{c.phone || c.cpf || 'Sem dados'}</p>
+                                                        </div>
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="p-4 text-center text-gray-500 text-xs">Nenhum cliente encontrado</div>
+                                            )}
+                                            <button
+                                                className="w-full p-2 bg-caramelo-primary/5 text-caramelo-primary text-[10px] font-black uppercase tracking-widest hover:bg-caramelo-primary/10"
+                                                onClick={onOpenCustomerModal}
+                                            >
+                                                + Cadastrar Novo
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
 
                         {/* Summary box: Total Final / Restante / Troco */}
                         <div className="p-3 md:p-5 bg-black rounded-2xl border border-white/10 flex flex-col gap-2 md:gap-3 shadow-inner">
@@ -379,6 +466,40 @@ const PaymentModal = ({ items = [], total, onClose, onComplete, storeName, cnpj,
                                 value={observation}
                                 onChange={(e) => setObservation(e.target.value)}
                             />
+                        </div>
+
+                        {/* Delivery section */}
+                        <div className="bg-white/5 p-3 md:p-4 rounded-2xl border border-white/5">
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest text-left">
+                                    Agendar Entrega
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsDelivery(!isDelivery);
+                                        if (!isDelivery && !deliveryDate) {
+                                            setDeliveryDate(new Date().toISOString().split('T')[0]);
+                                        }
+                                    }}
+                                    className={`w-12 h-6 rounded-full transition-all relative ${isDelivery ? 'bg-caramelo-primary' : 'bg-gray-800'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isDelivery ? 'right-1' : 'left-1'}`}></div>
+                                </button>
+                            </div>
+                            {isDelivery && (
+                                <div className="animate-fadeIn">
+                                    <input
+                                        type="date"
+                                        className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white font-medium focus:border-caramelo-primary outline-none transition-all text-sm"
+                                        value={deliveryDate}
+                                        onChange={(e) => setDeliveryDate(e.target.value)}
+                                    />
+                                    <p className="text-[9px] text-orange-400 mt-2 font-bold uppercase tracking-tighter">
+                                        * A entrega ficará pendente no cadastro do cliente
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

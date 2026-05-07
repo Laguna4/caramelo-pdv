@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaUser, FaIdCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaEye, FaFolderOpen, FaShoppingCart, FaPrint, FaCheck, FaFileAlt, FaMoneyBillWave } from 'react-icons/fa';
-import { getCustomers, addCustomer, updateCustomer, deleteCustomer, getStore, getBudgetsByCustomer, deleteBudget, getBudgetsByStore, getDebtsByStore } from '../services/dbService'; // Added getStore, getBudgetsByStore, getDebtsByStore
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaUser, FaIdCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaEye, FaFolderOpen, FaShoppingCart, FaPrint, FaCheck, FaFileAlt, FaMoneyBillWave, FaTruck, FaCalendarAlt } from 'react-icons/fa';
+import { getCustomers, addCustomer, updateCustomer, deleteCustomer, getStore, getBudgetsByCustomer, deleteBudget, getBudgetsByStore, getDebtsByStore, getSales, updateSaleDelivery } from '../services/dbService'; 
 import { useNavigate } from 'react-router-dom';
 import { getCurrentStore, getSettings } from '../utils/storage';
 import { formatCurrency } from '../utils/calculations';
@@ -21,10 +21,19 @@ const Customers = () => {
     const [customerBudgets, setCustomerBudgets] = useState([]);
     const [loadingBudgets, setLoadingBudgets] = useState(false);
 
+    // Delivery Management State
+    const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+    const [customerDeliveries, setCustomerDeliveries] = useState([]);
+    const [loadingDeliveries, setLoadingDeliveries] = useState(false);
+    const [reschedulingSaleId, setReschedulingSaleId] = useState(null);
+    const [newDeliveryDate, setNewDeliveryDate] = useState('');
+
     // Indicators State
     const [debtorIds, setDebtorIds] = useState(new Set());
     const [budgetCustomerIds, setBudgetCustomerIds] = useState(new Set());
-    const [activeFilter, setActiveFilter] = useState('all'); // all, debtors, budgets
+    const [pendingDeliveriesMap, setPendingDeliveriesMap] = useState({});
+    const [completedDeliveryCustomerIds, setCompletedDeliveryCustomerIds] = useState(new Set());
+    const [activeFilter, setActiveFilter] = useState('all'); // all, debtors, budgets, pending_deliveries, completed_deliveries
 
     const [formData, setFormData] = useState({
         email: '',
@@ -50,9 +59,10 @@ const Customers = () => {
 
     const loadIndicators = async (storeId) => {
         try {
-            const [allBudgets, allDebts] = await Promise.all([
+            const [allBudgets, allDebts, allSales] = await Promise.all([
                 getBudgetsByStore(storeId),
-                getDebtsByStore(storeId)
+                getDebtsByStore(storeId),
+                getSales(storeId)
             ]);
 
             const budgetsWithPending = new Set(
@@ -67,14 +77,24 @@ const Customers = () => {
                     .map(d => String(d.customerId || d.customer?.id))
             );
 
+            const deliveriesMap = {};
+            allSales.filter(s => s.deliveryStatus === 'PENDING').forEach(s => {
+                const cId = String(s.customerId || s.customer?.id);
+                if (s.deliveryDate && (!deliveriesMap[cId] || s.deliveryDate < deliveriesMap[cId])) {
+                    deliveriesMap[cId] = s.deliveryDate;
+                }
+            });
+
+            const completedDeliveries = new Set(
+                allSales
+                    .filter(s => s.deliveryStatus === 'COMPLETED')
+                    .map(s => String(s.customerId || s.customer?.id))
+            );
+
             setBudgetCustomerIds(budgetsWithPending);
             setDebtorIds(pendingDebts);
-            console.log("Indicators load complete!", {
-                budgetsFound: budgetsWithPending.size,
-                debtsFound: pendingDebts.size,
-                budgetIds: Array.from(budgetsWithPending),
-                debtIds: Array.from(pendingDebts)
-            });
+            setPendingDeliveriesMap(deliveriesMap);
+            setCompletedDeliveryCustomerIds(completedDeliveries);
         } catch (error) {
             console.error("Error loading indicators:", error);
         }
@@ -198,6 +218,8 @@ const Customers = () => {
         const cId = String(c.id);
         if (activeFilter === 'debtors') return debtorIds.has(cId);
         if (activeFilter === 'budgets') return budgetCustomerIds.has(cId);
+        if (activeFilter === 'pending_deliveries') return !!pendingDeliveriesMap[cId];
+        if (activeFilter === 'completed_deliveries') return completedDeliveryCustomerIds.has(cId);
 
         return true;
     });
@@ -248,6 +270,45 @@ const Customers = () => {
 
     const handleLoadBudget = (budget) => {
         navigate('/pos', { state: { budget: { ...budget, customerId: selectedCustomerForBudget.id } } });
+    };
+
+    const handleOpenDeliveries = async (customer) => {
+        setSelectedCustomerForBudget(customer);
+        setShowDeliveryModal(true);
+        setLoadingDeliveries(true);
+        try {
+            const { getCompletedSalesByCustomer } = await import('../services/dbService');
+            const sales = await getCompletedSalesByCustomer(currentStore.id, customer.id);
+            // Filter only sales that have deliveryDate (either pending or completed)
+            setCustomerDeliveries(sales.filter(s => s.deliveryDate));
+        } catch (error) {
+            console.error("Error loading deliveries:", error);
+        } finally {
+            setLoadingDeliveries(false);
+        }
+    };
+
+    const handleUpdateDeliveryStatus = async (saleId, status) => {
+        try {
+            await updateSaleDelivery(saleId, { deliveryStatus: status });
+            // Update local state
+            setCustomerDeliveries(prev => prev.map(d => d.id === saleId ? { ...d, deliveryStatus: status } : d));
+            loadIndicators(currentStore.id);
+        } catch (error) {
+            alert("Erro ao atualizar entrega: " + error.message);
+        }
+    };
+
+    const handleRescheduleDelivery = async (saleId) => {
+        if (!newDeliveryDate) return;
+        try {
+            await updateSaleDelivery(saleId, { deliveryDate: newDeliveryDate });
+            setCustomerDeliveries(prev => prev.map(d => d.id === saleId ? { ...d, deliveryDate: newDeliveryDate } : d));
+            setReschedulingSaleId(null);
+            setNewDeliveryDate('');
+        } catch (error) {
+            alert("Erro ao reagendar: " + error.message);
+        }
     };
 
     const handlePrintBudget = async (budget) => {
@@ -320,6 +381,18 @@ const Customers = () => {
                         >
                             <FaFileAlt className="shrink-0" /> <span className="hidden sm:inline">ORÇAMENTOS</span><span className="sm:hidden">ORC.</span>
                         </button>
+                        <button
+                            onClick={() => setActiveFilter('pending_deliveries')}
+                            className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all flex items-center justify-center gap-1 md:gap-2 ${activeFilter === 'pending_deliveries' ? 'bg-orange-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            <FaTruck className="shrink-0" /> <span className="hidden sm:inline">ENTREGAS PEND.</span><span className="sm:hidden">ENT. P.</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveFilter('completed_deliveries')}
+                            className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all flex items-center justify-center gap-1 md:gap-2 ${activeFilter === 'completed_deliveries' ? 'bg-green-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            <FaCheck className="shrink-0" /> <span className="hidden sm:inline">ENTREGAS REALIZ.</span><span className="sm:hidden">ENT. R.</span>
+                        </button>
                     </div>
                 </div>
 
@@ -352,6 +425,16 @@ const Customers = () => {
                                                         Débito Pendente
                                                     </span>
                                                 )}
+                                                {pendingDeliveriesMap[String(customer.id)] && (
+                                                    <span className="bg-orange-500/10 text-orange-400 text-[9px] font-black px-2 py-0.5 rounded-full border border-orange-500/20 uppercase tracking-tighter flex items-center gap-1">
+                                                        <FaTruck size={8} /> Entrega: {pendingDeliveriesMap[String(customer.id)].split('-').reverse().join('/')}
+                                                    </span>
+                                                )}
+                                                {completedDeliveryCustomerIds.has(String(customer.id)) && (
+                                                    <span className="bg-green-500/10 text-green-400 text-[9px] font-black px-2 py-0.5 rounded-full border border-green-500/20 uppercase tracking-tighter">
+                                                        Entrega Realizada
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </td>
@@ -363,7 +446,10 @@ const Customers = () => {
                                             <button className="p-3 bg-blue-500/10 text-blue-400 rounded-xl hover:bg-blue-500 hover:text-black transition-all border border-blue-500/20 shadow-lg shadow-blue-500/5 group" onClick={() => handleOpenBudgets(customer)} title="Ver Orçamentos">
                                                 <FaFileAlt className="group-hover:scale-110 transition-transform" />
                                             </button>
-                                            <button className="p-3 bg-orange-500/10 text-orange-400 rounded-xl hover:bg-orange-500 hover:text-black transition-all border border-orange-500/20 shadow-lg shadow-orange-500/5 group" onClick={() => handleOpenHistory(customer)} title="Histórico">
+                                            <button className="p-3 bg-orange-500/10 text-orange-400 rounded-xl hover:bg-orange-500 hover:text-black transition-all border border-orange-500/20 shadow-lg shadow-orange-500/5 group" onClick={() => handleOpenDeliveries(customer)} title="Gerenciar Entregas">
+                                                <FaTruck className="group-hover:scale-110 transition-transform" />
+                                            </button>
+                                            <button className="p-3 bg-gray-600/10 text-gray-400 rounded-xl hover:bg-gray-600 hover:text-white transition-all border border-gray-600/20 shadow-lg shadow-gray-500/5 group" onClick={() => handleOpenHistory(customer)} title="Histórico">
                                                 <FaFolderOpen className="group-hover:scale-110 transition-transform" />
                                             </button>
                                             <button className="p-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-white hover:text-black transition-all border border-gray-700 shadow-lg group" onClick={() => handleEdit(customer)} title="Editar">
@@ -393,6 +479,14 @@ const Customers = () => {
                                             {debtorIds.has(String(customer.id)) && (
                                                 <span className="bg-red-500/10 text-red-400 text-[8px] font-black px-2 py-0.5 rounded border border-red-500/20 uppercase">Devedor</span>
                                             )}
+                                            {pendingDeliveriesMap[String(customer.id)] && (
+                                                <span className="bg-orange-500/10 text-orange-400 text-[8px] font-black px-2 py-0.5 rounded border border-orange-500/20 uppercase">
+                                                    {pendingDeliveriesMap[String(customer.id)].split('-').reverse().join('/')}
+                                                </span>
+                                            )}
+                                            {completedDeliveryCustomerIds.has(String(customer.id)) && (
+                                                <span className="bg-green-500/10 text-green-400 text-[8px] font-black px-2 py-0.5 rounded border border-green-500/20 uppercase">Entregue</span>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
@@ -413,15 +507,18 @@ const Customers = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2">
-                                    <button className="flex-1 py-3 bg-blue-600/10 border border-blue-600/30 text-blue-400 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 active:scale-95" onClick={() => handleOpenBudgets(customer)}>
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    <button className="py-3 bg-blue-600/10 border border-blue-600/30 text-blue-400 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 active:scale-95" onClick={() => handleOpenBudgets(customer)}>
                                         <FaFileAlt /> Orçamentos
                                     </button>
-                                    <button className="flex-1 py-3 bg-orange-600/10 border border-orange-600/30 text-orange-400 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 active:scale-95" onClick={() => handleOpenHistory(customer)}>
+                                    <button className="py-3 bg-orange-600/10 border border-orange-600/30 text-orange-400 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 active:scale-95" onClick={() => handleOpenDeliveries(customer)}>
+                                        <FaTruck /> Entregas
+                                    </button>
+                                    <button className="py-3 bg-gray-600/10 border border-gray-600/30 text-gray-400 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 active:scale-95" onClick={() => handleOpenHistory(customer)}>
                                         <FaFolderOpen /> Histórico
                                     </button>
-                                    <button className="p-3 bg-red-900/10 border border-red-900/30 text-red-500 rounded-2xl active:scale-95" onClick={() => handleDelete(customer.id)}>
-                                        <FaTrash size={14} />
+                                    <button className="py-3 bg-red-900/10 border border-red-900/30 text-red-500 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 active:scale-95" onClick={() => handleDelete(customer.id)}>
+                                        <FaTrash /> Excluir
                                     </button>
                                 </div>
                             </div>
@@ -623,6 +720,147 @@ const Customers = () => {
 
                             <div className="p-6 border-t border-gray-800 bg-black/40 flex justify-end">
                                 <button onClick={() => setShowPurchaseHistory(false)} className="btn btn-secondary">Fechar</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* DELIVERY MANAGEMENT MODAL */}
+                {showDeliveryModal && (
+                    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+                        <div className="bg-[#111] border border-gray-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+                            <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
+                                <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                                    <FaTruck className="text-orange-500" />
+                                    Gerenciar Entregas: {selectedCustomerForBudget?.name}
+                                </h3>
+                                <button onClick={() => setShowDeliveryModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                                    <FaTimes size={24} />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6 bg-[#0a0a0a] custom-scrollbar">
+                                {loadingDeliveries ? (
+                                    <div className="text-center p-12 text-gray-500">Carregando entregas...</div>
+                                ) : customerDeliveries.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {customerDeliveries.map(sale => (
+                                            <div key={sale.id} className={`border rounded-2xl p-5 transition-all ${sale.deliveryStatus === 'PENDING' ? 'bg-orange-500/5 border-orange-500/20' : 'bg-green-500/5 border-green-500/20'}`}>
+                                                <div className="flex flex-col md:flex-row justify-between gap-4">
+                                                    <div className="flex-1">
+                                                        <div className="flex flex-col gap-1 mb-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <FaCalendarAlt className="text-gray-500" size={12} />
+                                                                <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Venda realizada em: {new Date(sale.date).toLocaleDateString('pt-BR')}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <FaTruck className="text-caramelo-primary" size={14} />
+                                                                <span className="text-white font-black text-sm">ENTREGA AGENDADA: {sale.deliveryDate ? sale.deliveryDate.split('-').reverse().join('/') : 'Não informada'}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Address Display */}
+                                                        <div className="bg-black/40 p-4 rounded-2xl border border-white/5 mb-4 shadow-inner">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <FaMapMarkerAlt className="text-orange-500" size={14} />
+                                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Endereço de Entrega</span>
+                                                            </div>
+                                                            <p className="text-sm text-gray-200 leading-relaxed font-medium">
+                                                                <span className="text-white font-bold">{selectedCustomerForBudget?.logradouro || 'Rua não informada'}</span>, {selectedCustomerForBudget?.numero || 'S/N'}
+                                                                {selectedCustomerForBudget?.complemento && <span className="text-gray-400 ml-1">({selectedCustomerForBudget.complemento})</span>}
+                                                                <br />
+                                                                <span className="text-gray-400">{selectedCustomerForBudget?.bairro || 'Bairro não informado'}</span>
+                                                                <br />
+                                                                {selectedCustomerForBudget?.cidade || 'Cidade não informada'} - {selectedCustomerForBudget?.uf || 'UF'}
+                                                                {selectedCustomerForBudget?.cep && <span className="text-blue-400/60 ml-2 font-mono text-[10px]">CEP: {selectedCustomerForBudget.cep}</span>}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="space-y-2 mb-4 bg-black/20 p-4 rounded-2xl border border-white/5">
+                                                            <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 border-b border-white/5 pb-1 flex justify-between">
+                                                                <span>Itens do Pedido</span>
+                                                                <span className="text-caramelo-primary">{sale.items?.length || 0} PRODUTOS</span>
+                                                            </div>
+                                                            {sale.items?.map((it, idx) => (
+                                                                <div key={idx} className="flex justify-between items-center text-xs">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center font-black text-[11px] text-gray-400 border border-white/5">{it.quantity}x</span>
+                                                                        <span className="text-gray-200 font-bold">{it.name.toUpperCase()}</span>
+                                                                    </div>
+                                                                    <span className="text-gray-500 font-mono font-bold">{formatCurrency(it.price * it.quantity)}</span>
+                                                                </div>
+                                                            ))}
+                                                            <div className="mt-3 pt-2 border-t border-dashed border-white/10 flex justify-between items-center">
+                                                                <span className="text-[10px] font-black text-gray-500 uppercase">Total da Venda</span>
+                                                                <span className="text-lg font-black text-white">{formatCurrency(sale.total)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex flex-col gap-2 justify-center md:w-48">
+                                                        {sale.deliveryStatus === 'PENDING' ? (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleUpdateDeliveryStatus(sale.id, 'COMPLETED')}
+                                                                    className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-green-900/20"
+                                                                >
+                                                                    <FaCheck /> DAR BAIXA
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => { setReschedulingSaleId(sale.id); setNewDeliveryDate(sale.deliveryDate); }}
+                                                                    className="w-full py-3 bg-white/5 hover:bg-white/10 text-gray-400 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all border border-white/5"
+                                                                >
+                                                                    <FaEdit /> REAGENDAR
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => handleUpdateDeliveryStatus(sale.id, 'PENDING')}
+                                                                className="w-full py-3 bg-orange-600/10 hover:bg-orange-600/20 text-orange-500 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all border border-orange-500/20"
+                                                            >
+                                                                <FaTimes /> VOLTAR P/ PENDENTE
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {reschedulingSaleId === sale.id && (
+                                                    <div className="mt-4 pt-4 border-t border-white/10 flex flex-col gap-3 animate-fadeIn">
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nova Data de Entrega</label>
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="date"
+                                                                className="flex-1 bg-black border border-white/10 rounded-xl px-4 py-2 text-white text-sm"
+                                                                value={newDeliveryDate}
+                                                                onChange={(e) => setNewDeliveryDate(e.target.value)}
+                                                            />
+                                                            <button
+                                                                onClick={() => handleRescheduleDelivery(sale.id)}
+                                                                className="px-4 py-2 bg-caramelo-primary text-white font-bold rounded-xl text-xs"
+                                                            >
+                                                                SALVAR
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setReschedulingSaleId(null)}
+                                                                className="px-4 py-2 bg-gray-800 text-gray-400 font-bold rounded-xl text-xs"
+                                                            >
+                                                                CANCELAR
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center p-12 text-gray-600 flex flex-col items-center gap-4">
+                                        <FaTruck size={48} className="opacity-20" />
+                                        Nenhuma entrega agendada para este cliente.
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-6 border-t border-gray-800 bg-black/40 flex justify-end">
+                                <button onClick={() => setShowDeliveryModal(false)} className="btn btn-secondary">Fechar</button>
                             </div>
                         </div>
                     </div>
